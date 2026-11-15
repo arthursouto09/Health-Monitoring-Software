@@ -49,6 +49,20 @@ export const INDICATORS = [
     source: "Normal 36.1-37.2 °C and fever from 38 °C (MedlinePlus and Cleveland Clinic ranges, as summarized in secondary sources); hypothermia below 35 °C (Mayo Clinic, via MedicineNet).",
   },
   {
+    id: "glucose", label: "Blood glucose", unit: "mg/dL", icon: "◆",
+    step: 1, input: { min: 20, max: 500 },
+    normalLow: 70, normalHigh: 99, criticalLow: 54, criticalHigh: 180,
+    hazard: "Altered gravity, radiation, reduced physical activity",
+    why: "Spaceflight can reduce insulin sensitivity, and diet and exercise change on board. Fasting glucose is a simple check of how the body handles energy.",
+    howTo: "Measure fasting (at least 8 hours without food), using the glucometer in the medical kit and following the device instructions.",
+    advice: {
+      normal: "Within the normal fasting range. Keep your diet and exercise routine.",
+      attention: "Outside the normal fasting range. If low, eat or drink 15 g of fast-acting carbohydrate and measure again in 15 minutes. If high, confirm you were fasting and measure again tomorrow. If it repeats, tell the flight surgeon.",
+      critical: "Very low (below 54 mg/dL) or very high. If low, take fast-acting carbohydrate now and alert a crewmate. In either case, contact the flight surgeon.",
+    },
+    source: "Normal fasting below 100 mg/dL, 100-125 prediabetes range, 126 or more diabetes range (CDC, diabetes testing: cdc.gov/diabetes/diabetes-testing). Hypoglycemia below 70 mg/dL and clinically significant below 54 mg/dL (American Diabetes Association, Standards of Care). Critical high limit (180 mg/dL): design choice of this app.",
+  },
+  {
     id: "sleep", label: "Sleep", unit: "h", icon: "☾",
     step: 0.5, input: { min: 0, max: 14 },
     normalLow: 7, normalHigh: 9, criticalLow: 5, criticalHigh: 11,

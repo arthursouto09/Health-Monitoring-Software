@@ -4,6 +4,7 @@ import { INDICATORS } from "./data/indicators.js";
 import { getStatus, STATUS_META, makeDemoEntries } from "./logic/status.js";
 import BodyMap from "./components/BodyMap.jsx";
 import Reminder from "./components/Reminder.jsx";
+import { checkInStreak, readinessScore, readinessLevel } from "./logic/engagement.js";
 import { toLocalISO } from "./logic/dates.js";
 import { personalBaseline, compareToBaseline, fmt, BASELINE } from "./logic/baseline.js";
 
@@ -94,12 +95,25 @@ export default function App() {
   const alerts = statuses.filter((s) => RANK[s.status] >= RANK.attention).sort((a, b) => RANK[b.status] - RANK[a.status]);
   const overall = statuses.reduce((w, s) => (RANK[s.status] > RANK[w] ? s.status : w), "unknown");
 
+  const streak = checkInStreak(entries, today);
+  const readiness = readinessScore(latest.values, INDICATORS);
+
   return (
     <main className="cockpit">
       <header className="topbar">
         <div>
           <h1>Astronaut Health Monitor</h1>
           <p>Last reading: {latest.date}</p>
+        </div>
+        <div className="stats" aria-label="Mission stats">
+          <div className={`stat ${readinessLevel(readiness)}`} title="Average of indicator statuses: normal 100, attention 50, critical 0. Not a clinical score.">
+            <span className="stat-value">{readiness ?? "–"}</span>
+            <span className="stat-label">Readiness</span>
+          </div>
+          <div className="stat" title="Consecutive days with a check-in">
+            <span className="stat-value"><span aria-hidden="true">🔥</span> {streak}</span>
+            <span className="stat-label">Day streak</span>
+          </div>
         </div>
         <div className="overall">
           <StatusBadge status={overall} />

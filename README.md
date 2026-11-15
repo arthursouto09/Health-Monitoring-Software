@@ -15,10 +15,12 @@
 
 On long missions, astronauts are exposed to radiation, isolation and confinement, altered gravity and a closed environment. With communication delays, they carry much of the responsibility for noticing health changes in themselves.
 
-**Astronaut Health Monitor** lets an astronaut record daily health indicators, see their status at a glance, follow trends over time and get plain-language guidance on what to do next, including when to contact the flight surgeon. It assumes the user is **not** a medical expert, so every measurement comes with instructions and an explanation.
+**Astronaut Health Monitor** lets an astronaut sign in, record daily health indicators, see their status at a glance, follow trends over time and get plain-language guidance on what to do next, including when to contact the flight surgeon. It assumes the user is **not** a medical expert, so every measurement comes with instructions and an explanation.
 
 ## Features
 
+- **Sign-in without sign-up:** crew accounts are created by mission control. A demo account (`astronaut` / `mars2026`) is shown on the login screen
+- **Review before saving:** each value is shown with the status it will get, so typos are caught before they become false alarms
 - **Daily check-in** for six indicators, with a hint on how to measure each one
 - **Color-coded status** (normal, attention, contact flight surgeon). Each status also has an icon and text, so it never depends on color alone
 - **Interactive body map:** click the brain, heart, whole body or bones to see what the part does, its spaceflight risk and the linked indicators
@@ -29,8 +31,8 @@ On long missions, astronauts are exposed to radiation, isolation and confinement
 - **Check-in reminder:** on-screen banner and an optional browser notification
 - **Readiness score and day streak** to keep the routine going (not clinical scores)
 - **CSV report** of all readings to send to the flight surgeon, generated on the device
-- **Demo data:** 14 days of simulated readings, so charts are never empty on first open
-- **Local storage:** readings stay in the browser, with no server
+- **Demo account with 14 days of simulated readings**, so charts are never empty
+- **Backend:** readings are stored per astronaut in Postgres and validated on the server, so they follow the astronaut to any device
 
 ## Health indicators
 
@@ -73,7 +75,9 @@ These ranges are for healthy adults at rest, which is why the app also compares 
 - React 18 and Vite
 - Recharts for charts
 - SVG for the body map
-- Browser `localStorage` for data
+- Vercel serverless functions (`api/`) for the backend
+- Postgres (`pg`); Neon in production, Docker Compose locally
+- Node's built-in `crypto` for password hashing (scrypt) and signed session cookies
 
 ## Getting started
 
@@ -86,7 +90,21 @@ npm install
 npm run dev
 ```
 
-Open the address shown in the terminal (usually `http://localhost:5173`).
+Open the address shown in the terminal (usually `http://localhost:5173`) and sign in with **astronaut / mars2026**. `npm run dev` serves the frontend and the `/api` routes together. Without a database configured, data is saved to `.data/db.json`.
+
+**With Postgres (optional, same as production):**
+
+```bash
+docker compose up -d
+cp .env.example .env.local    # then set DATABASE_URL=postgres://ahm:ahm@localhost:5432/ahm
+npm run dev
+```
+
+**Crew accounts** (there is no sign-up):
+
+```bash
+npm run create-user -- <username> "<Full name>" <password>
+```
 
 **Windows note:** if PowerShell blocks `npm`, run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` once, or use the Command Prompt.
 
@@ -97,26 +115,47 @@ npm run build
 npm run preview
 ```
 
+**Deploy on Vercel:** import the repository, connect a Postgres database (Neon) under Storage so `DATABASE_URL` is set, add a long random `SESSION_SECRET` under Environment Variables, and deploy. Step-by-step instructions are in [`docs/como-executar.md`](docs/como-executar.md) (Portuguese).
+
 ## Architecture
 
 Medical content, logic and interface are kept apart: changing a range or a text never requires touching the logic.
 
 ```mermaid
 flowchart LR
-    DATA["src/data/<br/>indicators, environments"] --> UI["src/App.jsx + components/<br/>dashboard, body map, reminder"]
+    DATA["src/data/<br/>indicators, environments"] --> UI["React app (src/)<br/>login, dashboard, check-in"]
     LOGIC["src/logic/<br/>status, baseline, engagement,<br/>report, dates"] --> UI
-    UI <--> LS[("localStorage")]
+    UI <-- "fetch + session cookie" --> API["api/<br/>login, logout, me, entries"]
+    API --> SERVER["server/<br/>session, passwords,<br/>validation, store"]
+    DATA --> SERVER
+    SERVER --> DB[("Postgres")]
     UI --> CSV[/"CSV report"/]
 ```
 
+| Route | Method | What it does |
+|---|---|---|
+| `/api/login` | POST | Checks the password and sets an HttpOnly session cookie |
+| `/api/logout` | POST | Clears the session |
+| `/api/me` | GET | Returns the signed-in astronaut |
+| `/api/entries` | GET / PUT | Lists or saves the signed-in astronaut's readings (one per day) |
+
 ```text
+api/                        # backend routes (Vercel functions)
+server/                     # session, passwords, validation, database store
+scripts/create-user.js      # creates crew accounts
+docker-compose.yml          # local Postgres
 src/
 ├── main.jsx
-├── App.jsx                 # dashboard, cards, chart, alerts, check-in, export
+├── Root.jsx                # login or dashboard
+├── api.js                  # client for /api
+├── App.jsx                 # dashboard, cards, chart, alerts, export
 ├── styles.css
 ├── components/
 │   ├── BodyMap.jsx         # clickable body figure
-│   └── Reminder.jsx        # check-in reminder
+│   ├── CheckIn.jsx         # check-in form and review step
+│   ├── Login.jsx           # sign-in screen
+│   ├── Reminder.jsx        # check-in reminder
+│   └── StatusBadge.jsx     # status badge (color + icon + text)
 ├── data/
 │   ├── indicators.js       # ranges, texts and sources
 │   └── environments.js     # mission environments and tips
@@ -139,14 +178,17 @@ This is a hackathon prototype.
 - [x] Reminders to take measurements (while the app is open)
 - [x] Gamification (streak, readiness score)
 - [x] Environment selector (spacecraft, station, rover, lunar or Mars base)
-- [x] Report export for the flight surgeon (local CSV)
-- [ ] Secure sharing of reports with flight surgeons (needs a server)
+- [x] Report export for the flight surgeon (CSV)
+- [x] Backend with sign-in and per-astronaut storage
+- [x] Review step before saving a check-in
+- [ ] Flight surgeon role to view the crew's readings
+- [ ] Login rate limiting and session revocation
 - [ ] Mood measured with a validated questionnaire
 - [ ] Image-based inputs (camera, ultrasound)
 - [ ] More indicators (for example bone density and exercise)
 - [ ] Reminders when the app is closed
 
-Readings are stored per browser, so a phone does not see readings saved on a computer.
+Crew accounts are managed from the command line only; there is no account management screen yet.
 
 ## Sources
 

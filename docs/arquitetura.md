@@ -1,6 +1,9 @@
 # Arquitetura
 
-O app é uma página única em React, sem servidor: tudo roda no navegador e as leituras ficam no `localStorage`.
+O app tem duas partes no mesmo repositório e no mesmo deploy:
+
+- **Front-end:** página única em React (Vite), em `src/`.
+- **Back-end:** funções em `api/` que a Vercel publica como serverless. Elas cuidam do login e guardam as leituras de cada astronauta num Postgres. Em desenvolvimento, o próprio Vite serve essas funções, então `npm run dev` sobe tudo junto.
 
 ## Visão geral
 
@@ -25,7 +28,14 @@ flowchart LR
         REM["components/Reminder.jsx"]
     end
 
-    LS[("localStorage")]
+    subgraph Back["Back-end (api/ + server/)"]
+        API["api/login, logout,<br/>me, entries"]
+        SRV["server/<br/>sessão, senhas,<br/>validação, store"]
+    end
+
+    DB[("Postgres<br/>(Neon na Vercel,<br/>Docker no local)")]
+    JSONF[("arquivo .data/db.json<br/>(local, sem banco)")]
+    LS[("localStorage<br/>só o ambiente")]
     USER(["Astronauta"])
     FILE[/"arquivo .csv"/]
 
@@ -37,8 +47,13 @@ flowchart LR
     ENG --> APP
     REP --> APP
     APP --> BODY & REM
-    USER -- check-in --> APP
-    APP <-- leituras e ambiente --> LS
+    USER -- login e check-in --> APP
+    APP <-- "fetch /api (cookie de sessão)" --> API
+    API --> SRV
+    IND --> SRV
+    SRV --> DB
+    SRV -.-> JSONF
+    APP <-- ambiente --> LS
     APP -- exportar --> FILE
 ```
 
@@ -48,7 +63,9 @@ flowchart LR
 |---|---|---|---|
 | Conteúdo | `src/data/` | Faixas de referência, textos de orientação, fontes, ambientes | Só dados. Corrigir uma faixa ou texto nunca exige mexer na lógica |
 | Lógica | `src/logic/` | Calcular status, linha de base, pontuação, relatório e datas | Funções puras, sem React, fáceis de testar |
-| Interface | `src/App.jsx`, `src/components/` | Mostrar o painel e receber as leituras | Não decide regras médicas, só chama a lógica |
+| Interface | `src/Root.jsx`, `src/App.jsx`, `src/components/`, `src/api.js` | Login, painel e check-in | Não decide regras médicas, só chama a lógica |
+| API | `api/` | Uma função por rota (`/api/<nome>` → `api/<nome>.js`) | Só recebe, valida e responde; a regra fica em `server/` |
+| Servidor | `server/` | Sessão, senhas, validação e acesso ao banco | O mesmo código roda na Vercel e no `npm run dev` |
 
 A decisão mais importante é **separar conteúdo e lógica**. Todo o conteúdo médico fica em `indicators.js`, e cada indicador diz o que vem de fonte e o que é decisão do app.
 
@@ -57,14 +74,20 @@ A decisão mais importante é **separar conteúdo e lógica**. Todo o conteúdo 
 ```mermaid
 sequenceDiagram
     actor A as Astronauta
-    participant C as Check-in (App.jsx)
-    participant S as localStorage
+    participant C as Check-in (CheckIn.jsx)
+    participant API as PUT /api/entries
+    participant DB as Banco
     participant L as logic/*
     participant P as Painel
 
-    A->>C: preenche e salva
-    C->>C: data local de hoje (dates.js)
-    C->>S: grava (substitui a leitura do mesmo dia)
+    A->>C: preenche
+    C->>L: status e linha de base de cada valor
+    C-->>A: revisão (Corrigir ou Confirmar)
+    A->>C: confirma
+    C->>API: { date, values } + cookie de sessão
+    API->>API: confere sessão e limites dos valores
+    API->>DB: grava (substitui a leitura do mesmo dia)
+    API-->>C: leitura salva
     C->>L: getStatus, personalBaseline, readinessScore
     L-->>P: status, desvio da linha de base, pontuação
     P-->>A: cores + ícone + texto, alertas, orientação
@@ -75,17 +98,67 @@ sequenceDiagram
 3. Cada parte do corpo mostra o **pior status** entre os indicadores ligados a ela.
 4. O status geral no topo é o pior status entre todos os indicadores.
 
-## Armazenamento local
+## Back-end
 
-| Chave do `localStorage` | Conteúdo |
+### Rotas
+
+| Rota | Método | Login | O que faz |
+|---|---|---|---|
+| `/api/login` | POST `{ username, password }` | Não | Confere a senha e grava o cookie de sessão |
+| `/api/logout` | POST | Não | Apaga o cookie |
+| `/api/me` | GET | — | Devolve o usuário logado, ou 401 com a dica da conta demo |
+| `/api/entries` | GET | Sim | Lista as leituras do astronauta, da mais antiga para a mais nova |
+| `/api/entries` | PUT `{ date, values }` | Sim | Salva a leitura do dia (substitui a do mesmo dia) |
+
+### Login e segurança
+
+- **Sem cadastro:** as contas são criadas pela equipe com `npm run create-user` (veja [como-executar.md](como-executar.md#contas-da-tripulação)).
+- **Senhas** guardadas com `scrypt` (nativo do Node), com sal aleatório.
+- **Sessão** em cookie `HttpOnly`, `SameSite=Lax` e `Secure` em HTTPS, assinado com HMAC usando `SESSION_SECRET`. Vale por 7 dias. O JavaScript da página não tem acesso ao token.
+- **Validação no servidor:** só aceita indicadores conhecidos e valores dentro dos limites de entrada de `indicators.js`.
+- **Isolamento:** cada astronauta só lê e grava as próprias leituras.
+
+### Banco de dados
+
+| Situação | Onde grava |
 |---|---|
-| `astro-health-entries` | Lista de leituras: `{ date: "AAAA-MM-DD", values: { heartRate: 72, ... } }`, uma por dia |
-| `astro-health-environment` | Ambiente selecionado (`station`, `spacecraft`, `rover`, `moon`, `mars`) |
-| `astro-health-last-notified` | Último dia em que a notificação de lembrete foi enviada |
+| `DATABASE_URL` definida | Postgres. As tabelas são criadas sozinhas na primeira requisição |
+| Sem `DATABASE_URL`, no seu computador | Arquivo `.data/db.json` (fora do Git). Zero configuração |
+| Sem `DATABASE_URL`, na Vercel | Erro claro pedindo para conectar um banco |
 
-Se não houver leituras salvas, o app gera 14 dias de dados de demonstração (determinísticos, sempre iguais). Para voltar a eles, rode `localStorage.clear()` no console do navegador.
+```mermaid
+erDiagram
+    users ||--o{ entries : tem
+    users {
+        serial id PK
+        text username UK
+        text name
+        text password_hash
+        timestamptz created_at
+    }
+    entries {
+        integer user_id PK, FK
+        text date PK "AAAA-MM-DD"
+        jsonb readings "{ heartRate: 72, ... }"
+        timestamptz updated_at
+    }
+```
 
-**Limitação:** os dados ficam em cada navegador. O celular não vê o que foi salvo no computador.
+**Conta demo:** com o banco vazio, o servidor cria `astronaut` / `mars2026` com 14 dias de dados de demonstração, e a tela de login mostra essas credenciais para os avaliadores. As datas são as do dia em que a conta foi criada. Para desligar, use `DEMO_ACCOUNT=off`.
+
+### Variáveis de ambiente
+
+| Variável | Onde | Para que |
+|---|---|---|
+| `DATABASE_URL` | Vercel (obrigatória) e local (opcional) | Conexão com o Postgres |
+| `SESSION_SECRET` | Vercel (obrigatória) | Assinar os cookies de sessão. Em desenvolvimento há um valor padrão |
+| `DEMO_ACCOUNT` | Opcional | `off` desliga a conta demo |
+
+O modelo está em `.env.example`. Localmente, copie para `.env.local`, que fica fora do Git.
+
+### O que fica no navegador
+
+Só o ambiente da missão escolhido (`localStorage`, chave `astro-health-environment`) e a data da última notificação de lembrete (`astro-health-last-notified`). As leituras ficam no servidor, então aparecem em qualquer aparelho em que o astronauta entrar.
 
 ## Estrutura de arquivos
 
@@ -93,15 +166,35 @@ Se não houver leituras salvas, o app gera 14 dias de dados de demonstração (d
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── docker-compose.yml          Postgres para desenvolvimento local
+├── .env.example                modelo das variáveis de ambiente
 ├── README.md                   apresentação pública (inglês)
 ├── docs/                       documentação interna (português)
+├── api/                        rotas do back-end (uma função por arquivo)
+│   ├── login.js
+│   ├── logout.js
+│   ├── me.js
+│   └── entries.js
+├── server/                     código compartilhado do back-end
+│   ├── http.js                 respostas JSON, leitura do corpo, erros
+│   ├── session.js              cookie de sessão assinado
+│   ├── passwords.js            hash de senha com scrypt
+│   ├── store.js                Postgres ou arquivo local, conta demo
+│   └── validate.js             validação das leituras
+├── scripts/
+│   └── create-user.js          cria ou atualiza contas da tripulação
 └── src/
     ├── main.jsx                ponto de entrada
-    ├── App.jsx                 painel, cards, gráfico, alertas, check-in, exportação
+    ├── Root.jsx                decide entre login e painel, carrega as leituras
+    ├── api.js                  cliente das rotas /api
+    ├── App.jsx                 painel, cards, gráfico, alertas, exportação
     ├── styles.css              visual e layout
     ├── components/
     │   ├── BodyMap.jsx         figura do corpo clicável
-    │   └── Reminder.jsx        aviso e notificação de check-in
+    │   ├── CheckIn.jsx         formulário e revisão antes de salvar
+    │   ├── Login.jsx           tela de login (sem cadastro)
+    │   ├── Reminder.jsx        aviso e notificação de check-in
+    │   └── StatusBadge.jsx     selo de status (cor + ícone + texto)
     ├── data/
     │   ├── indicators.js       faixas, textos e fontes
     │   └── environments.js     ambientes da missão e dicas
@@ -121,4 +214,7 @@ Se não houver leituras salvas, o app gera 14 dias de dados de demonstração (d
 | Vite 5 | Servidor de desenvolvimento e build | Inicia rápido e a Vercel reconhece sem configuração |
 | Recharts | Gráficos de tendência | Integra com React e permite sombrear a faixa normal |
 | SVG | Figura do corpo | Partes clicáveis, coloridas e acessíveis pelo teclado |
-| localStorage | Armazenamento | Dispensa servidor e banco de dados |
+| Funções serverless da Vercel | Back-end | Mesmo deploy e mesma URL do front, sem servidor para manter |
+| Postgres (`pg`) | Banco de dados | Gratuito no Neon pela Vercel; Docker no desenvolvimento |
+| `node:crypto` | Senhas e sessão | Nativo do Node, sem dependências extras de segurança |
+| Docker Compose | Postgres local | Um comando para ter o mesmo banco da produção |

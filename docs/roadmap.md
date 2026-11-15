@@ -24,17 +24,28 @@ Estado em 15 de novembro de 2026.
 | Lembretes para medir | **Feito** (aviso na tela e notificação com o app aberto) |
 | Gamificação (sequência de dias, pontuação de prontidão) | **Feito** |
 | Seletor de ambiente | **Feito** |
-| Compartilhamento com o cirurgião de voo | **Parcial:** exportação CSV local. O compartilhamento *seguro* precisa de servidor e autenticação |
+| Compartilhamento com o cirurgião de voo | **Parcial:** exportação CSV. O back-end e o login já existem; falta o perfil de cirurgião de voo (veja abaixo) |
 | Escala de humor validada | Pendente. Precisa ser escolhida com um psicólogo |
 | Entrada por imagem (câmera, ultrassom) | Pendente. Precisa de processamento de imagem para ter valor real |
 | Lembretes com o app fechado | Pendente. Exigiria service worker e push |
+| Back-end com login e banco | **Feito.** Funções na Vercel, Postgres, login sem cadastro, conta demo |
+| Revisão antes de salvar o check-in | **Feito** (Corrigir ou Confirmar) |
 
 ## Ideias em discussão
 
 | Ideia | Observação |
 |---|---|
-| Confirmação antes de salvar o check-in | Mostrar um resumo dos valores com o status de cada um e pedir confirmação, principalmente quando algum valor é crítico ou incomum |
-| Check-in parcial sem apagar o resto do dia | Hoje, salvar de novo no mesmo dia substitui a leitura inteira |
+| Check-in parcial sem apagar o resto do dia | Hoje, salvar de novo no mesmo dia substitui a leitura inteira. A revisão já avisa o que será apagado |
+| Perfil de cirurgião de voo | Uma conta que vê as leituras da tripulação, fechando o ciclo do compartilhamento seguro |
+
+## Limitações do back-end
+
+| Item | Detalhe |
+|---|---|
+| Sem limite de tentativas de login | Não há bloqueio após várias senhas erradas. Para produção real, usar rate limit (por exemplo Upstash) |
+| Sessão não pode ser revogada | O cookie assinado vale 7 dias. Trocar a senha não derruba sessões já abertas; trocar o `SESSION_SECRET` derruba todas |
+| Datas da conta demo fixas | Os 14 dias de demonstração são os do dia em que o banco foi criado. Para renovar, apague as tabelas (ou `docker compose down -v` no local) |
+| Sem gestão de contas na interface | Criar e trocar senha só pelo `npm run create-user` |
 
 ## Correções e limpeza pendentes
 
@@ -44,3 +55,4 @@ Estado em 15 de novembro de 2026.
 | Arquivo `.gitigonre` | Nome com erro de digitação; é uma cópia do `.gitignore` e pode ser apagado |
 | Arquivo `src/index.html` | Cópia do `index.html` da raiz; o Vite usa só o da raiz |
 | Classe `.grid` em `styles.css` | Sobra do layout antigo, não é usada |
+| Selo de status no `BodyMap.jsx` | Repete o HTML do componente `StatusBadge`; pode passar a usá-lo |

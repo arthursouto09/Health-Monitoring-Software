@@ -2,6 +2,14 @@
 
 Estado em 15 de novembro de 2026. A coluna "Pedido do desafio" liga cada funcionalidade ao enunciado do NASA Space Apps Challenge.
 
+## Acesso
+
+| Funcionalidade | O que faz | Pedido do desafio |
+|---|---|---|
+| Login sem cadastro | Tela de entrada com usuário e senha. As contas são criadas pela equipe da missão (`npm run create-user`), porque a tripulação é fixa | Dados de saúde protegidos por pessoa |
+| Conta demo | `astronaut` / `mars2026`, com 14 dias de dados. A tela de login mostra as credenciais e um botão que as preenche | Avaliadores conseguem testar sem conta |
+| Sair | Botão "Sign out" no topo, ao lado do nome | — |
+
 ## Painel
 
 | Funcionalidade | O que faz | Pedido do desafio |
@@ -18,9 +26,10 @@ O status nunca depende só da cor: cada um tem ícone e texto, o que ajuda quem 
 
 | Funcionalidade | O que faz | Pedido do desafio |
 |---|---|---|
-| Check-in diário | Formulário com os 6 indicadores e uma instrução de como medir cada um. Salvar de novo no mesmo dia **substitui** a leitura inteira | Coletar indicadores de saúde; não presumir conhecimento médico |
-| Dados de demonstração | 14 dias simulados na primeira abertura, para os gráficos nunca ficarem vazios | — |
-| Persistência local | Leituras e ambiente ficam no navegador | Uso contínuo sem servidor |
+| Check-in diário | Formulário com os 6 indicadores e uma instrução de como medir cada um | Coletar indicadores de saúde; não presumir conhecimento médico |
+| Revisão antes de salvar | Mostra cada valor com o status que vai receber e a marca de incomum. Avisa quando há valor crítico e quando o envio vai substituir as leituras de hoje, listando o que será apagado. Botões "Correct" e "Confirm and save" | Evitar erros de digitação e alertas falsos |
+| Persistência no servidor | Leituras salvas por astronauta no back-end e validadas lá. Aparecem em qualquer aparelho em que a pessoa entrar | Uso contínuo |
+| Painel vazio | Conta nova mostra "No readings yet" e o aviso de check-in | — |
 
 ## Acompanhamento e engajamento
 
@@ -31,11 +40,12 @@ O status nunca depende só da cor: cada um tem ícone e texto, o que ajuda quem 
 | Sequência de dias | Conta os dias seguidos com check-in. Se hoje ainda não teve, conta até ontem | Gamificação |
 | Pontuação de prontidão | 0 a 100 a partir dos status atuais. Não é clínica | Gamificação |
 | Seletor de ambiente | Estação, nave, rover, base lunar ou base em Marte. Muda o contexto e uma dica por indicador | Adaptar ao ambiente da missão |
-| Relatório CSV | Baixa todas as leituras com status e faixa normal, para enviar ao cirurgião de voo. O arquivo é gerado no aparelho | Compartilhar com a equipe médica (parcial) |
+| Relatório CSV | Baixa todas as leituras do astronauta com status e faixa normal, para enviar ao cirurgião de voo | Compartilhar com a equipe médica (parcial) |
 
 ## Layout
 
-- **Desktop:** barra de status no topo; três colunas com corpo à esquerda, cards em grade 3×2 e detalhe no centro, alertas, check-in e relatório à direita.
+- **Login:** cartão centralizado, igual no desktop e no celular.
+- **Desktop:** barra de status no topo (com o nome de quem entrou e "Sign out"); três colunas com corpo à esquerda, cards em grade 3×2 e detalhe no centro, alertas, check-in e relatório à direita.
 - **Abaixo de cerca de 1100 px:** vira uma coluna, com a análise primeiro e o corpo por último.
 - **Celular (até 600 px):** cards em duas colunas, alvos de toque de 44 px e campos com 16 px para evitar zoom automático no iPhone.
 

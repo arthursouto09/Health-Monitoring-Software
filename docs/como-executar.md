@@ -2,51 +2,97 @@
 
 ## Requisitos
 
-[Node.js](https://nodejs.org/) LTS (testado com Node 22).
+- [Node.js](https://nodejs.org/) 22 LTS (o `npm run create-user` precisa da 22.9 ou mais nova).
+- Opcional: [Docker](https://www.docker.com/) para rodar com Postgres no seu computador.
 
-## Desenvolvimento
+## Desenvolvimento rápido (sem banco)
 
 ```bash
 npm install        # só na primeira vez ou quando o package.json mudar
 npm run dev
 ```
 
-Abra o endereço que o terminal mostrar (normalmente `http://localhost:5173`). O app só funciona enquanto o servidor está ligado; `Ctrl + C` encerra.
+Abra o endereço do terminal (normalmente `http://localhost:5173`) e entre com a conta demo **astronaut / mars2026** (o botão "Fill in" preenche). Sem `DATABASE_URL`, o back-end grava em `.data/db.json`. Para começar do zero, apague a pasta `.data`.
+
+O `npm run dev` sobe o front e as rotas `/api` juntos. `Ctrl + C` encerra.
 
 Para abrir pelo celular na mesma rede Wi-Fi: `npm run dev -- --host` e use o endereço da linha `Network`.
 
-## Build de produção
+## Desenvolvimento com Postgres (Docker)
 
-É o que a Vercel gera. Rode antes de abrir um PR: se falhar aqui, falha no deploy.
+Assim o ambiente fica igual ao da produção.
+
+```bash
+docker compose up -d                       # sobe o Postgres na porta 5432
+cp .env.example .env.local                 # no Windows: copy .env.example .env.local
+```
+
+No `.env.local`, preencha:
+
+```text
+DATABASE_URL=postgres://ahm:ahm@localhost:5432/ahm
+```
+
+Depois `npm run dev`. As tabelas e a conta demo são criadas na primeira requisição.
+
+| Comando | O que faz |
+|---|---|
+| `docker compose down` | Para o banco e mantém os dados |
+| `docker compose down -v` | Para o banco e apaga os dados (volta à conta demo) |
+| `docker compose exec db psql -U ahm -d ahm` | Abre o console SQL |
+
+## Contas da tripulação
+
+Não existe cadastro no app: as contas são criadas pela equipe da missão.
+
+```bash
+npm run create-user -- <usuario> "<Nome completo>" <senha>
+# exemplo
+npm run create-user -- arthur "Arthur Souto" senha-segura-1
+```
+
+- Usa o `DATABASE_URL` do `.env.local`; sem ele, grava em `.data/db.json`.
+- Rodar de novo com o mesmo usuário **troca a senha**.
+- Senha com pelo menos 8 caracteres. O usuário é salvo em minúsculas.
+- Para criar contas **na produção**, coloque no `.env.local` o `DATABASE_URL` do banco da Vercel e rode o mesmo comando.
+
+## Build de produção
 
 ```bash
 npm run build
-npm run preview
+npm run preview    # também serve as rotas /api
 ```
 
-O aviso "Some chunks are larger than 500 kB" é esperado (vem do Recharts) e não impede o build.
+Rode antes de abrir um PR: se falhar aqui, falha no deploy. O aviso "Some chunks are larger than 500 kB" é esperado (vem do Recharts).
+
+## Deploy na Vercel
+
+1. Importe o repositório na Vercel. Ela detecta o Vite e publica as funções da pasta `api/` sozinha, sem configuração extra.
+2. Em **Storage**, crie um banco **Postgres (Neon)** e conecte ao projeto. A Vercel cria a variável `DATABASE_URL` (se ela vier com outro nome, como `POSTGRES_URL`, crie `DATABASE_URL` com o mesmo valor).
+3. Em **Settings > Environment Variables**, crie `SESSION_SECRET` com um texto aleatório longo:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+4. Faça o deploy (ou um redeploy, se as variáveis foram criadas depois).
+5. Abra a URL e entre com **astronaut / mars2026**. Crie as contas reais com `npm run create-user` apontando para o banco da Vercel.
 
 ## Roteiro de teste manual
 
 | O que testar | Como | Resultado esperado |
 |---|---|---|
-| Status crítico | No check-in, digite glicemia `40` e salve | Card vermelho, item no topo dos alertas, prontidão cai |
-| Faixa e linha de base | Clique em "Heart rate" | Faixa verde atrás da linha e linha tracejada "your baseline". Nos dados de demonstração, a frequência cardíaca aparece como "Unusual for you" |
-| Ambiente | Troque para "Mars base" e recarregue | A dica "In this environment" muda e a escolha continua após recarregar |
-| Relatório | Clique em "Export report (CSV)" | Baixa `health-report-AAAA-MM-DD.csv` |
-| Corpo clicável | Clique nas partes ou use Tab e Enter | Painel da parte muda; "View trend" seleciona o indicador |
+| Login | Senha errada, depois "Fill in" e "Sign in" | Mensagem "Wrong username or password"; depois abre o painel com "Signed in as Demo astronaut" |
+| Sem cadastro | Procure um link de cadastro | Não existe; só `npm run create-user` cria contas |
+| Revisão | Preencha frequência `74` e glicemia `40`, clique em "Review today's readings" | Lista com status de cada valor, aviso de valor crítico e aviso de que substitui as leituras de hoje |
+| Corrigir | Clique em "Correct" | Volta ao formulário com os valores preenchidos |
+| Salvar | Corrija a glicemia, "Review" e "Confirm and save" | Cards atualizam e o formulário limpa |
+| Persistência | Recarregue a página, ou entre em outro navegador ou no celular | As leituras continuam lá (vêm do servidor) |
+| Sair | "Sign out" | Volta para o login; recarregar não entra de novo |
+| Usuário novo | Crie uma conta com `create-user` e entre | Painel vazio com "No readings yet", aviso de check-in pendente e sequência 0 |
+| Faixa e linha de base | Na conta demo, clique em "Heart rate" | Faixa verde atrás da linha e linha tracejada "your baseline" |
+| Ambiente | Troque para "Mars base" e recarregue | A dica muda e a escolha continua |
+| Relatório | "Export report (CSV)" | Baixa `health-report-AAAA-MM-DD.csv` |
+| API sem login | `curl -i http://localhost:5173/api/entries` | `401 Not signed in` |
 | Celular | `npm run dev -- --host` ou o modo celular do DevTools | Uma coluna, cards em duas colunas |
-
-**Forçar o lembrete:** os dados de demonstração já incluem hoje, então o aviso não aparece de início. Cole no console do navegador (F12) e recarregue:
-
-```js
-const d = new Date(); d.setDate(d.getDate() - 1);
-localStorage.setItem("astro-health-entries", JSON.stringify([{ date: d.toLocaleDateString("sv"), values: { heartRate: 70 } }]));
-```
-
-Deve aparecer o aviso e a sequência fica em 1.
-
-**Voltar aos dados de demonstração:** `localStorage.clear()` no console e recarregar.
 
 ## Problemas conhecidos no Windows
 

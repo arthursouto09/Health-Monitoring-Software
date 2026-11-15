@@ -8,14 +8,16 @@ import StatusBadge from "./StatusBadge.jsx";
 // Daily check-in in two steps: fill in the values, then review and confirm.
 // The review catches typos before they become false alerts and warns that
 // saving again on the same day replaces the readings already saved today.
-export default function CheckIn({ entries, onSave }) {
+export default function CheckIn({ entries, onSave, onPreview }) {
   const [form, setForm] = useState({});
   const [review, setReview] = useState(null); // { date, values } while reviewing
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const reviewHeading = useRef(null);
 
-  useEffect(() => { if (review) reviewHeading.current?.focus(); }, [review]);
+  useEffect(() => { if (review) reviewHeading.current?.focus({ preventScroll: true }); }, [review]);
+  // Lets the dashboard show the values under review before they are saved.
+  useEffect(() => { onPreview?.(review); }, [review, onPreview]);
 
   const submit = (e) => {
     e.preventDefault();
@@ -49,7 +51,7 @@ export default function CheckIn({ entries, onSave }) {
     return (
       <section className="panel checkin review" id="checkin" aria-labelledby="review-title">
         <h2 id="review-title" tabIndex={-1} ref={reviewHeading}>Review before saving</h2>
-        <p className="hint">Check each value. If something is wrong, go back and correct it.</p>
+        <p className="hint">The dashboard now shows these values as a preview. Check each one; if something is wrong, go back and correct it.</p>
         <ul className="review-list">
           {filled.map((i) => {
             const v = review.values[i.id];

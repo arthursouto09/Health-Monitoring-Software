@@ -41,6 +41,9 @@ const EMPTY = { date: null, values: {} };
 
 export default function App({ user, initialEntries, onLogout }) {
   const [entries, setEntries] = useState(initialEntries);
+  // Readings under review in the check-in (not saved yet). While set, the whole
+  // dashboard shows them as today's reading so the astronaut can check them.
+  const [draft, setDraft] = useState(null);
   const [selectedId, setSelectedId] = useState(INDICATORS[0].id);
   const [envId, setEnvId] = useState(loadEnvironment);
   const env = ENVIRONMENTS.find((e) => e.id === envId);
@@ -56,15 +59,29 @@ export default function App({ user, initialEntries, onLogout }) {
     setEntries((prev) => [...prev.filter((e) => e.date !== saved.date), saved].sort((a, b) => a.date.localeCompare(b.date)));
   };
 
-  const latest = entries[entries.length - 1] ?? EMPTY;
+  const shown = draft
+    ? [...entries.filter((e) => e.date !== draft.date), draft].sort((a, b) => a.date.localeCompare(b.date))
+    : entries;
+
+  // When a review starts, open the most important indicator under review.
+  useEffect(() => {
+    if (!draft) return;
+    const filled = INDICATORS.filter((i) => draft.values[i.id] !== undefined);
+    const worst = [...filled].sort((a, b) => RANK[getStatus(draft.values[b.id], b)] - RANK[getStatus(draft.values[a.id], a)])[0];
+    if (worst) setSelectedId(worst.id);
+    // Scroll up so the updated cards and the preview banner are in view.
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [draft]);
+
+  const latest = shown[shown.length - 1] ?? EMPTY;
   const today = toLocalISO();
   const ind = INDICATORS.find((i) => i.id === selectedId);
   const value = latest.values[ind.id];
   const status = getStatus(value, ind);
-  const chartData = entries.map((e) => ({ date: e.date.slice(5), value: e.values[ind.id] }));
+  const chartData = shown.map((e) => ({ date: e.date.slice(5), value: e.values[ind.id] }));
 
   // Personal baseline for each indicator, from the readings before the latest one.
-  const baselines = Object.fromEntries(INDICATORS.map((i) => [i.id, personalBaseline(entries, i, latest.date ?? today)]));
+  const baselines = Object.fromEntries(INDICATORS.map((i) => [i.id, personalBaseline(shown, i, latest.date ?? today)]));
   const comparisons = Object.fromEntries(INDICATORS.map((i) => [i.id, compareToBaseline(latest.values[i.id], baselines[i.id])]));
   const baseline = baselines[ind.id];
   const comparison = comparisons[ind.id];
@@ -79,7 +96,7 @@ export default function App({ user, initialEntries, onLogout }) {
   const exportReport = () =>
     downloadText(`health-report-${today}.csv`, buildReportCsv(entries, INDICATORS, env.label));
 
-  const streak = checkInStreak(entries, today);
+  const streak = checkInStreak(shown, today);
   const readiness = readinessScore(latest.values, INDICATORS);
 
   return (
@@ -115,9 +132,16 @@ export default function App({ user, initialEntries, onLogout }) {
         </div>
       </header>
 
-      <Reminder checkedInToday={latest.date === today} today={today} />
+      {draft ? (
+        <div className="preview-banner" role="status">
+          <span><strong>Preview, not saved yet.</strong> The dashboard shows the values you are reviewing.</span>
+          <a href="#checkin">Confirm or correct</a>
+        </div>
+      ) : (
+        <Reminder checkedInToday={latest.date === today} today={today} />
+      )}
 
-      <div className="layout">
+      <div className={`layout ${draft ? "previewing" : ""}`}>
         <aside className="col-left">
           <BodyMap values={latest.values} onSelect={setSelectedId} />
         </aside>
@@ -203,7 +227,7 @@ export default function App({ user, initialEntries, onLogout }) {
               </>
             )}
           </section>
-          <CheckIn entries={entries} onSave={save} />
+          <CheckIn entries={entries} onSave={save} onPreview={setDraft} />
           <section className="panel export">
             <h2>Report for the flight surgeon</h2>
             <p>Download all your readings as a CSV file to attach to your medical report.</p>

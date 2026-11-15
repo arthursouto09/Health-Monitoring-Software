@@ -117,3 +117,7 @@ select { background: var(--bg); color: var(--text); border: 1px solid var(--line
 .loading { color: var(--muted); }
 .user { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: .9rem; }
 .export button:disabled { opacity: .5; cursor: not-allowed; }
+/* ---- Preview while reviewing a check-in ---- */
+.preview-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--panel); border: 2px dashed var(--accent); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; }
+.preview-banner a { color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 4px 10px; text-decoration: none; }
+.previewing .card, .previewing .detail, .previewing .bodymap { border-style: dashed; }

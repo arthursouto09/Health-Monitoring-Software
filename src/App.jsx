@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceArea, ReferenceLine, ResponsiveContainer } from "recharts";
 import { INDICATORS } from "./data/indicators.js";
 import { ENVIRONMENTS } from "./data/environments.js";
-import { getStatus, STATUS_META, makeDemoEntries } from "./logic/status.js";
+import { getStatus, makeDemoEntries } from "./logic/status.js";
 import BodyMap from "./components/BodyMap.jsx";
 import Reminder from "./components/Reminder.jsx";
+import CheckIn from "./components/CheckIn.jsx";
+import StatusBadge from "./components/StatusBadge.jsx";
 import { buildReportCsv, downloadText } from "./logic/report.js";
 import { checkInStreak, readinessScore, readinessLevel } from "./logic/engagement.js";
 import { toLocalISO } from "./logic/dates.js";
@@ -28,37 +30,6 @@ function loadEnvironment() {
     if (ENVIRONMENTS.some((e) => e.id === saved)) return saved;
   } catch { /* storage unavailable */ }
   return ENVIRONMENTS[0].id;
-}
-
-function StatusBadge({ status }) {
-  const m = STATUS_META[status];
-  return <span className={`badge ${status}`}><span aria-hidden="true">{m.icon}</span> {m.label}</span>;
-}
-
-function CheckIn({ onSave }) {
-  const [form, setForm] = useState({});
-  const submit = (e) => {
-    e.preventDefault();
-    const values = {};
-    INDICATORS.forEach((i) => { if (form[i.id] !== undefined && form[i.id] !== "") values[i.id] = Number(form[i.id]); });
-    if (!Object.keys(values).length) return;
-    onSave({ date: toLocalISO(), values });
-    setForm({});
-  };
-  return (
-    <form className="panel checkin" id="checkin" onSubmit={submit}>
-      <h2>Daily check-in</h2>
-      {INDICATORS.map((i) => (
-        <label key={i.id}>
-          <span>{i.label} ({i.unit})</span>
-          <input type="number" inputMode="decimal" step={i.step} min={i.input.min} max={i.input.max}
-            value={form[i.id] ?? ""} onChange={(e) => setForm({ ...form, [i.id]: e.target.value })} />
-          <small>{i.howTo}</small>
-        </label>
-      ))}
-      <button type="submit">Save today's readings</button>
-    </form>
-  );
 }
 
 function Card({ ind, value, unusual, selected, onSelect }) {
@@ -235,7 +206,7 @@ export default function App() {
               </>
             )}
           </section>
-          <CheckIn onSave={save} />
+          <CheckIn entries={entries} onSave={save} />
           <section className="panel export">
             <h2>Report for the flight surgeon</h2>
             <p>Download all readings as a CSV file to attach to your medical report. The file is created on this device only.</p>

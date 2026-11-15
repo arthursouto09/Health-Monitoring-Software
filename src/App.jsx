@@ -5,6 +5,7 @@ import { ENVIRONMENTS } from "./data/environments.js";
 import { getStatus, STATUS_META, makeDemoEntries } from "./logic/status.js";
 import BodyMap from "./components/BodyMap.jsx";
 import Reminder from "./components/Reminder.jsx";
+import { buildReportCsv, downloadText } from "./logic/report.js";
 import { checkInStreak, readinessScore, readinessLevel } from "./logic/engagement.js";
 import { toLocalISO } from "./logic/dates.js";
 import { personalBaseline, compareToBaseline, fmt, BASELINE } from "./logic/baseline.js";
@@ -110,6 +111,9 @@ export default function App() {
   const statuses = INDICATORS.map((i) => ({ ind: i, status: getStatus(latest.values[i.id], i) }));
   const alerts = statuses.filter((s) => RANK[s.status] >= RANK.attention).sort((a, b) => RANK[b.status] - RANK[a.status]);
   const overall = statuses.reduce((w, s) => (RANK[s.status] > RANK[w] ? s.status : w), "unknown");
+
+  const exportReport = () =>
+    downloadText(`health-report-${today}.csv`, buildReportCsv(entries, INDICATORS, env.label));
 
   const streak = checkInStreak(entries, today);
   const readiness = readinessScore(latest.values, INDICATORS);
@@ -232,6 +236,11 @@ export default function App() {
             )}
           </section>
           <CheckIn onSave={save} />
+          <section className="panel export">
+            <h2>Report for the flight surgeon</h2>
+            <p>Download all readings as a CSV file to attach to your medical report. The file is created on this device only.</p>
+            <button type="button" onClick={exportReport}>Export report (CSV)</button>
+          </section>
         </aside>
       </div>
 

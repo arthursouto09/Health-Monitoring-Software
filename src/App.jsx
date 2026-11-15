@@ -167,7 +167,7 @@ export default function App() {
             <div className="chart">
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={chartData}>
-                  <ReferenceArea y1={ind.normalLow} y2={ind.normalHigh} fill="var(--normal)" fillOpacity={0.15} />
+                  <ReferenceArea y1={ind.normalLow} y2={ind.normalHigh} fill="var(--normal)" fillOpacity={0.15} ifOverflow="extendDomain" />
                   <XAxis dataKey="date" stroke="var(--muted)" />
                   <YAxis stroke="var(--muted)" domain={["auto", "auto"]} />
                   <Tooltip />

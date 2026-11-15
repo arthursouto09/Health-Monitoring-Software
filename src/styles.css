@@ -45,7 +45,7 @@ footer { margin-top: 24px; color: var(--muted); font-size: .85rem; }
 .overall { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .layout { display: grid; grid-template-columns: 280px minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
 .col-left, .col-center, .col-right { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.cockpit .cards { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); margin-bottom: 0; }
+.cockpit .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 0; }
 .cockpit .bodymap { grid-template-columns: 1fr; justify-items: center; margin-bottom: 0; }
 .alerts ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .alert-item { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--bg); color: inherit; border: 1px solid var(--line); border-left-width: 6px; border-radius: 8px; padding: 8px 10px; font: inherit; text-align: left; cursor: pointer; }

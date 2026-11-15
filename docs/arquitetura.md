@@ -82,6 +82,7 @@ sequenceDiagram
 
     A->>C: preenche
     C->>L: status e linha de base de cada valor
+    C-->>P: prévia (painel mostra os valores ainda não salvos)
     C-->>A: revisão (Corrigir ou Confirmar)
     A->>C: confirma
     C->>API: { date, values } + cookie de sessão

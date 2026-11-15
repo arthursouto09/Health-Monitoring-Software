@@ -19,11 +19,16 @@ On long missions, astronauts are exposed to radiation, isolation and confinement
 
 ## Features
 
-- **Daily check-in** for five indicators, with a hint on how to measure each one
+- **Daily check-in** for six indicators, with a hint on how to measure each one
 - **Color-coded status** (normal, attention, contact flight surgeon). Each status also has an icon and text, so it never depends on color alone
 - **Interactive body map:** click the brain, heart, whole body or bones to see what the part does, its spaceflight risk and the linked indicators
-- **Trend charts** with the normal range shaded in the background
+- **Trend charts** with the normal range shaded and the personal baseline drawn as a dashed line
+- **Personal baseline:** flags readings that are unusual *for you* (more than 2 standard deviations from your last 14 readings), even when they are inside the general range
 - **Guidance per result:** what the value means and what to do
+- **Mission environment selector:** space station, spacecraft, rover, lunar base or Mars base, with a context tip for each indicator
+- **Check-in reminder:** on-screen banner and an optional browser notification
+- **Readiness score and day streak** to keep the routine going (not clinical scores)
+- **CSV report** of all readings to send to the flight surgeon, generated on the device
 - **Demo data:** 14 days of simulated readings, so charts are never empty on first open
 - **Local storage:** readings stay in the browser, with no server
 
@@ -34,6 +39,7 @@ On long missions, astronauts are exposed to radiation, isolation and confinement
 | Heart rate (bpm) | Cardiovascular adaptation and stress | Altered gravity, radiation |
 | Systolic blood pressure (mmHg) | Fluid shifts in microgravity | Altered gravity |
 | Body temperature (°C) | Infection and immune changes in a closed environment | Closed environment, radiation |
+| Fasting blood glucose (mg/dL) | Spaceflight can reduce insulin sensitivity | Altered gravity, radiation, less physical activity |
 | Sleep (h) | Astronauts average about 6 h in space, below the 7 to 9 h adults need | Isolation, confinement |
 | Mood (1 to 5) | Early sign of behavioral health problems | Isolation, distance from Earth |
 
@@ -43,6 +49,7 @@ On long missions, astronauts are exposed to radiation, isolation and confinement
 2. Inside the normal range: **normal**. Outside it but not far: **attention**. Beyond the critical limits: **contact flight surgeon**.
 3. The app shows an explanation and a recommended action for that status.
 4. Each body part shows the **worst status** among its linked indicators.
+5. Separately, the reading is compared with the astronaut's **personal baseline**. This adds an "Unusual for you" flag but does not change the status.
 
 All medical content (ranges, texts, sources) lives in one data file, separate from the code. Updating a range never requires touching the logic.
 
@@ -55,10 +62,11 @@ Each indicator in `src/data/indicators.js` states which numbers come from a sour
 | Heart rate | Normal resting range of 60 to 100 bpm | Critical limits (40 and 120 bpm) |
 | Systolic pressure | Normal below 120 mmHg; above 180 is severe | Lower limits (90 and 80 mmHg) |
 | Temperature | Normal 36.1 to 37.2 °C; fever from 38 °C; hypothermia below 35 °C | None |
+| Fasting glucose | Normal below 100 mg/dL; hypoglycemia below 70, significant below 54 | Critical high limit (180 mg/dL) |
 | Sleep | 7 to 9 h recommended; astronauts average about 6 h in flight | Critical limits (5 and 11 h) |
 | Mood | None | The whole 1 to 5 self-rating scale |
 
-These ranges are for healthy adults at rest. A real system would also compare each person with their **own baseline**.
+These ranges are for healthy adults at rest, which is why the app also compares each person with their **own baseline**. The baseline parameters (14 readings, at least 5, 2 standard deviations) are design choices of this app.
 
 ## Tech stack
 
@@ -72,8 +80,8 @@ These ranges are for healthy adults at rest. A real system would also compare ea
 Requires [Node.js](https://nodejs.org/) (LTS).
 
 ```bash
-git clone [REPOSITORY URL]
-cd [REPOSITORY FOLDER]
+git clone https://github.com/arthursouto09/Health-Monitoring-Software.git
+cd Health-Monitoring-Software
 npm install
 npm run dev
 ```
@@ -89,36 +97,56 @@ npm run build
 npm run preview
 ```
 
-## Project structure
+## Architecture
+
+Medical content, logic and interface are kept apart: changing a range or a text never requires touching the logic.
+
+```mermaid
+flowchart LR
+    DATA["src/data/<br/>indicators, environments"] --> UI["src/App.jsx + components/<br/>dashboard, body map, reminder"]
+    LOGIC["src/logic/<br/>status, baseline, engagement,<br/>report, dates"] --> UI
+    UI <--> LS[("localStorage")]
+    UI --> CSV[/"CSV report"/]
+```
 
 ```text
-├── index.html
-├── package.json
-├── vite.config.js
-└── src/
-    ├── main.jsx
-    ├── App.jsx                 # dashboard, check-in form, charts
-    ├── styles.css
-    ├── components/
-    │   └── BodyMap.jsx         # clickable body figure
-    ├── data/
-    │   └── indicators.js       # ranges, texts and sources
-    └── logic/
-        └── status.js           # status rules and demo data
+src/
+├── main.jsx
+├── App.jsx                 # dashboard, cards, chart, alerts, check-in, export
+├── styles.css
+├── components/
+│   ├── BodyMap.jsx         # clickable body figure
+│   └── Reminder.jsx        # check-in reminder
+├── data/
+│   ├── indicators.js       # ranges, texts and sources
+│   └── environments.js     # mission environments and tips
+└── logic/
+    ├── status.js           # status rules and demo data
+    ├── baseline.js         # personal baseline
+    ├── engagement.js       # day streak and readiness score
+    ├── report.js           # CSV report
+    └── dates.js            # local-time dates
 ```
+
+Internal team documentation (Portuguese) is in [`docs/`](docs/README.md).
 
 ## Limitations and roadmap
 
-This is a hackathon prototype. Not implemented yet:
+This is a hackathon prototype.
 
-- [ ] Blood glucose and other indicators
-- [ ] Comparison with each astronaut's personal baseline
-- [ ] Reminders to take measurements
-- [ ] Gamification (streaks, readiness score)
-- [ ] Environment selector (spacecraft, station, rover, lunar or Mars base)
-- [ ] Image-based inputs (camera, ultrasound)
+- [x] Blood glucose
+- [x] Comparison with each astronaut's personal baseline
+- [x] Reminders to take measurements (while the app is open)
+- [x] Gamification (streak, readiness score)
+- [x] Environment selector (spacecraft, station, rover, lunar or Mars base)
+- [x] Report export for the flight surgeon (local CSV)
+- [ ] Secure sharing of reports with flight surgeons (needs a server)
 - [ ] Mood measured with a validated questionnaire
-- [ ] Secure sharing of reports with flight surgeons
+- [ ] Image-based inputs (camera, ultrasound)
+- [ ] More indicators (for example bone density and exercise)
+- [ ] Reminders when the app is closed
+
+Readings are stored per browser, so a phone does not see readings saved on a computer.
 
 ## Sources
 
@@ -127,6 +155,8 @@ This is a hackathon prototype. Not implemented yet:
 - Barger et al., sleep of astronauts before, during and after spaceflight (The Lancet Neurology, 2014): https://pmc.ncbi.nlm.nih.gov/articles/PMC4188436
 - American Heart Association blood pressure categories, via Harvard Health: https://www.health.harvard.edu/heart-health/reading-the-current-blood-pressure-guidelines
 - Resting heart rate, Mayo Clinic: https://www.mayoclinic.org/heart-rate/expert-answers/faq-20057979
+- Fasting blood glucose, CDC: https://www.cdc.gov/diabetes/diabetes-testing/
+- Hypoglycemia levels, American Diabetes Association, Standards of Care in Diabetes [ADD LINK]
 - Body temperature and hypothermia: [ADD PRIMARY SOURCE, e.g. MedlinePlus or Mayo Clinic]
 
 ## Team

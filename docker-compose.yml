@@ -1,0 +1,28 @@
+# Local Postgres for development (optional).
+# Production uses a managed Postgres (e.g. Neon on Vercel), not this file.
+#
+#   docker compose up -d      start the database
+#   docker compose down       stop it (data is kept in the volume)
+#   docker compose down -v    stop it and delete the data
+#
+# Then put this in .env.local:
+#   DATABASE_URL=postgres://ahm:ahm@localhost:5432/ahm
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ahm
+      POSTGRES_PASSWORD: ahm
+      POSTGRES_DB: ahm
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ahm -d ahm"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:

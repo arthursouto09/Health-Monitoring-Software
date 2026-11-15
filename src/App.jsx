@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceArea, ReferenceLine, ResponsiveContainer } from "recharts";
 import { INDICATORS } from "./data/indicators.js";
+import { ENVIRONMENTS } from "./data/environments.js";
 import { getStatus, STATUS_META, makeDemoEntries } from "./logic/status.js";
 import BodyMap from "./components/BodyMap.jsx";
 import Reminder from "./components/Reminder.jsx";
@@ -9,6 +10,7 @@ import { toLocalISO } from "./logic/dates.js";
 import { personalBaseline, compareToBaseline, fmt, BASELINE } from "./logic/baseline.js";
 
 const KEY = "astro-health-entries";
+const ENV_KEY = "astro-health-environment";
 const RANK = { unknown: 0, normal: 1, attention: 2, critical: 3 };
 
 function load() {
@@ -17,6 +19,14 @@ function load() {
     if (Array.isArray(saved) && saved.length) return saved;
   } catch { /* storage unavailable: fall back to demo data */ }
   return makeDemoEntries(INDICATORS);
+}
+
+function loadEnvironment() {
+  try {
+    const saved = localStorage.getItem(ENV_KEY);
+    if (ENVIRONMENTS.some((e) => e.id === saved)) return saved;
+  } catch { /* storage unavailable */ }
+  return ENVIRONMENTS[0].id;
 }
 
 function StatusBadge({ status }) {
@@ -66,6 +76,12 @@ function Card({ ind, value, unusual, selected, onSelect }) {
 export default function App() {
   const [entries, setEntries] = useState(load);
   const [selectedId, setSelectedId] = useState(INDICATORS[0].id);
+  const [envId, setEnvId] = useState(loadEnvironment);
+  const env = ENVIRONMENTS.find((e) => e.id === envId);
+
+  useEffect(() => {
+    try { localStorage.setItem(ENV_KEY, envId); } catch { /* ignore */ }
+  }, [envId]);
 
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify(entries)); } catch { /* ignore */ }
@@ -104,6 +120,12 @@ export default function App() {
         <div>
           <h1>Astronaut Health Monitor</h1>
           <p>Last reading: {latest.date}</p>
+          <label className="env-select">
+            <span>Environment</span>
+            <select value={envId} onChange={(e) => setEnvId(e.target.value)}>
+              {ENVIRONMENTS.map((e) => <option key={e.id} value={e.id}>{e.label}</option>)}
+            </select>
+          </label>
         </div>
         <div className="stats" aria-label="Mission stats">
           <div className={`stat ${readinessLevel(readiness)}`} title="Average of indicator statuses: normal 100, attention 50, critical 0. Not a clinical score.">
@@ -166,8 +188,12 @@ export default function App() {
                 `needs at least ${BASELINE.minReadings} earlier readings.`
               )}
             </p>
+            {env.tips[ind.id] && (
+              <p className="env-tip"><strong>In this environment:</strong> {env.tips[ind.id]}</p>
+            )}
             <p><strong>Why it matters:</strong> {ind.why}</p>
             <p><strong>Spaceflight hazard:</strong> {ind.hazard}</p>
+            <p><strong>{env.label}:</strong> {env.context}</p>
             <p><strong>Source:</strong> {ind.source}</p>
           </section>
         </section>

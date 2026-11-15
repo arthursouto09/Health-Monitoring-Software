@@ -81,3 +81,8 @@ html { scroll-behavior: smooth; }
 .stat-value { font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
 .stat-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .stat.normal .stat-value { color: var(--normal); } .stat.attention .stat-value { color: var(--attention); } .stat.critical .stat-value { color: var(--critical); }
+/* ---- Environment selector ---- */
+.env-select { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--muted); font-size: .9rem; }
+select { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font: inherit; max-width: 100%; }
+.env-tip { border-left: 3px solid var(--accent); padding-left: 10px; }
+@media (max-width: 600px) { select { font-size: 16px; } .env-select { flex-wrap: wrap; } }

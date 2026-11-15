@@ -121,3 +121,9 @@ select { background: var(--bg); color: var(--text); border: 1px solid var(--line
 .preview-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--panel); border: 2px dashed var(--accent); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; }
 .preview-banner a { color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 4px 10px; text-decoration: none; }
 .previewing .card, .previewing .detail, .previewing .bodymap { border-style: dashed; }
+/* ---- Check-in validation and kept values ---- */
+.checkin label.invalid input { border-color: var(--critical); }
+.field-error { color: var(--critical); font-size: .85rem; font-weight: 600; }
+.checkin .hint { color: var(--muted); font-size: .9rem; margin-top: 0; }
+.review-item.kept { opacity: .75; }
+input::placeholder { color: var(--muted); opacity: .8; }

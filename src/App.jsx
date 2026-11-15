@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceArea, ReferenceLine, ResponsiveContainer } from "recharts";
 import { INDICATORS } from "./data/indicators.js";
 import { ENVIRONMENTS } from "./data/environments.js";
-import { getStatus, makeDemoEntries } from "./logic/status.js";
+import { getStatus } from "./logic/status.js";
+import { api } from "./api.js";
 import BodyMap from "./components/BodyMap.jsx";
 import Reminder from "./components/Reminder.jsx";
 import CheckIn from "./components/CheckIn.jsx";
@@ -12,17 +13,8 @@ import { checkInStreak, readinessScore, readinessLevel } from "./logic/engagemen
 import { toLocalISO } from "./logic/dates.js";
 import { personalBaseline, compareToBaseline, fmt, BASELINE } from "./logic/baseline.js";
 
-const KEY = "astro-health-entries";
 const ENV_KEY = "astro-health-environment";
 const RANK = { unknown: 0, normal: 1, attention: 2, critical: 3 };
-
-function load() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(KEY));
-    if (Array.isArray(saved) && saved.length) return saved;
-  } catch { /* storage unavailable: fall back to demo data */ }
-  return makeDemoEntries(INDICATORS);
-}
 
 function loadEnvironment() {
   try {
@@ -45,8 +37,10 @@ function Card({ ind, value, unusual, selected, onSelect }) {
   );
 }
 
-export default function App() {
-  const [entries, setEntries] = useState(load);
+const EMPTY = { date: null, values: {} };
+
+export default function App({ user, initialEntries, onLogout }) {
+  const [entries, setEntries] = useState(initialEntries);
   const [selectedId, setSelectedId] = useState(INDICATORS[0].id);
   const [envId, setEnvId] = useState(loadEnvironment);
   const env = ENVIRONMENTS.find((e) => e.id === envId);
@@ -55,15 +49,14 @@ export default function App() {
     try { localStorage.setItem(ENV_KEY, envId); } catch { /* ignore */ }
   }, [envId]);
 
-  useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(entries)); } catch { /* ignore */ }
-  }, [entries]);
-
   // One entry per day: saving again today replaces today's readings.
-  const save = (entry) =>
-    setEntries((prev) => [...prev.filter((e) => e.date !== entry.date), entry].sort((a, b) => a.date.localeCompare(b.date)));
+  // The server validates and stores it; the screen updates only after it is saved.
+  const save = async (entry) => {
+    const saved = await api.saveEntry(entry);
+    setEntries((prev) => [...prev.filter((e) => e.date !== saved.date), saved].sort((a, b) => a.date.localeCompare(b.date)));
+  };
 
-  const latest = entries[entries.length - 1];
+  const latest = entries[entries.length - 1] ?? EMPTY;
   const today = toLocalISO();
   const ind = INDICATORS.find((i) => i.id === selectedId);
   const value = latest.values[ind.id];
@@ -71,7 +64,7 @@ export default function App() {
   const chartData = entries.map((e) => ({ date: e.date.slice(5), value: e.values[ind.id] }));
 
   // Personal baseline for each indicator, from the readings before the latest one.
-  const baselines = Object.fromEntries(INDICATORS.map((i) => [i.id, personalBaseline(entries, i, latest.date)]));
+  const baselines = Object.fromEntries(INDICATORS.map((i) => [i.id, personalBaseline(entries, i, latest.date ?? today)]));
   const comparisons = Object.fromEntries(INDICATORS.map((i) => [i.id, compareToBaseline(latest.values[i.id], baselines[i.id])]));
   const baseline = baselines[ind.id];
   const comparison = comparisons[ind.id];
@@ -94,7 +87,7 @@ export default function App() {
       <header className="topbar">
         <div>
           <h1>Astronaut Health Monitor</h1>
-          <p>Last reading: {latest.date}</p>
+          <p>Last reading: {latest.date ?? "none yet"}</p>
           <label className="env-select">
             <span>Environment</span>
             <select value={envId} onChange={(e) => setEnvId(e.target.value)}>
@@ -114,7 +107,11 @@ export default function App() {
         </div>
         <div className="overall">
           <StatusBadge status={overall} />
-          <span>{alerts.length ? `${alerts.length} indicator(s) need attention` : "All indicators normal"}</span>
+          <span>{!latest.date ? "No readings yet" : alerts.length ? `${alerts.length} indicator(s) need attention` : "All indicators normal"}</span>
+        </div>
+        <div className="user">
+          <span>Signed in as <strong>{user.name}</strong></span>
+          <button type="button" onClick={onLogout}>Sign out</button>
         </div>
       </header>
 
@@ -209,8 +206,8 @@ export default function App() {
           <CheckIn entries={entries} onSave={save} />
           <section className="panel export">
             <h2>Report for the flight surgeon</h2>
-            <p>Download all readings as a CSV file to attach to your medical report. The file is created on this device only.</p>
-            <button type="button" onClick={exportReport}>Export report (CSV)</button>
+            <p>Download all your readings as a CSV file to attach to your medical report.</p>
+            <button type="button" onClick={exportReport} disabled={!entries.length}>Export report (CSV)</button>
           </section>
         </aside>
       </div>

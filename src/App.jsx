@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceArea, ResponsiveContai
 import { INDICATORS } from "./data/indicators.js";
 import { getStatus, STATUS_META, makeDemoEntries } from "./logic/status.js";
 import BodyMap from "./components/BodyMap.jsx";
+import { toLocalISO } from "./logic/dates.js";
 
 const KEY = "astro-health-entries";
 const RANK = { unknown: 0, normal: 1, attention: 2, critical: 3 };
@@ -27,7 +28,7 @@ function CheckIn({ onSave }) {
     const values = {};
     INDICATORS.forEach((i) => { if (form[i.id] !== undefined && form[i.id] !== "") values[i.id] = Number(form[i.id]); });
     if (!Object.keys(values).length) return;
-    onSave({ date: new Date().toISOString().slice(0, 10), values });
+    onSave({ date: toLocalISO(), values });
     setForm({});
   };
   return (

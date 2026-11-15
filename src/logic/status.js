@@ -1,3 +1,5 @@
+import { toLocalISO } from "./dates.js";
+
 // Turns a measured value into "normal" | "attention" | "critical".
 export function getStatus(value, ind) {
   if (value === null || value === undefined || Number.isNaN(value)) return "unknown";
@@ -29,6 +31,6 @@ export function makeDemoEntries(indicators, days = 14) {
       const v = base[ind.id] + drift[ind.id] * i + wobble;
       values[ind.id] = Math.round(v / ind.step) * ind.step;
     });
-    return { date: d.toISOString().slice(0, 10), values };
+    return { date: toLocalISO(d), values };
   });
 }

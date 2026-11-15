@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceArea, ReferenceLine, R
 import { INDICATORS } from "./data/indicators.js";
 import { getStatus, STATUS_META, makeDemoEntries } from "./logic/status.js";
 import BodyMap from "./components/BodyMap.jsx";
+import Reminder from "./components/Reminder.jsx";
 import { toLocalISO } from "./logic/dates.js";
 import { personalBaseline, compareToBaseline, fmt, BASELINE } from "./logic/baseline.js";
 
@@ -33,7 +34,7 @@ function CheckIn({ onSave }) {
     setForm({});
   };
   return (
-    <form className="panel checkin" onSubmit={submit}>
+    <form className="panel checkin" id="checkin" onSubmit={submit}>
       <h2>Daily check-in</h2>
       {INDICATORS.map((i) => (
         <label key={i.id}>
@@ -74,6 +75,7 @@ export default function App() {
     setEntries((prev) => [...prev.filter((e) => e.date !== entry.date), entry].sort((a, b) => a.date.localeCompare(b.date)));
 
   const latest = entries[entries.length - 1];
+  const today = toLocalISO();
   const ind = INDICATORS.find((i) => i.id === selectedId);
   const value = latest.values[ind.id];
   const status = getStatus(value, ind);
@@ -104,6 +106,8 @@ export default function App() {
           <span>{alerts.length ? `${alerts.length} indicator(s) need attention` : "All indicators normal"}</span>
         </div>
       </header>
+
+      <Reminder checkedInToday={latest.date === today} today={today} />
 
       <div className="layout">
         <aside className="col-left">

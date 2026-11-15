@@ -1,9 +1,12 @@
 import { toLocalISO, addDays } from "./dates.js";
 
 // Turns a measured value into "normal" | "attention" | "critical".
+// The high critical cutoff is inclusive (>=): sourced wording for it is typically
+// "X or more" (e.g. fever at 38°C or more), unlike the low cutoff, which sourced
+// wording phrases as "below X" (exclusive).
 export function getStatus(value, ind) {
   if (value === null || value === undefined || Number.isNaN(value)) return "unknown";
-  if (value < ind.criticalLow || value > ind.criticalHigh) return "critical";
+  if (value < ind.criticalLow || value >= ind.criticalHigh) return "critical";
   if (value < ind.normalLow || value > ind.normalHigh) return "attention";
   return "normal";
 }

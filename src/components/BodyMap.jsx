@@ -2,6 +2,7 @@ import { useState } from "react";
 import { INDICATORS } from "../data/indicators.js";
 import { getStatus, STATUS_META } from "../logic/status.js";
 import HazardTag from "./HazardTag.jsx";
+import StatusBadge from "./StatusBadge.jsx";
 
 const RANK = { unknown: 0, normal: 1, attention: 2, critical: 3 };
 
@@ -69,7 +70,7 @@ export default function BodyMap({ values, onSelect }) {
           return (
             <div key={ind.id} className="linked">
               <span>{ind.label}: <strong>{values[ind.id] ?? "–"} {ind.unit}</strong></span>
-              <span className={`badge ${s}`}><span aria-hidden="true">{STATUS_META[s].icon}</span> {STATUS_META[s].label}</span>
+              <StatusBadge status={s} />
               <button type="button" onClick={() => onSelect(ind.id)}>View trend</button>
               <HazardTag indicatorId={ind.id} />
             </div>

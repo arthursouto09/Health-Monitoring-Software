@@ -26,8 +26,10 @@ O status nunca depende só da cor: cada um tem ícone e texto, o que ajuda quem 
 
 | Funcionalidade | O que faz | Pedido do desafio |
 |---|---|---|
-| Check-in diário | Formulário com os 6 indicadores e uma instrução de como medir cada um | Coletar indicadores de saúde; não presumir conhecimento médico |
-| Revisão antes de salvar | Mostra cada valor com o status que vai receber e a marca de incomum. Avisa quando há valor crítico e quando o envio vai substituir as leituras de hoje, listando o que será apagado. Botões "Correct" e "Confirm and save" | Evitar erros de digitação e alertas falsos |
+| Check-in diário | Formulário com os 6 indicadores, uma instrução de como medir cada um e a faixa aceita | Coletar indicadores de saúde; não presumir conhecimento médico |
+| Valores realistas | Recusa valores fora da faixa plausível (por exemplo temperatura 27 ou 45 °C), precisão errada (72,5 bpm) e notação científica. O erro aparece embaixo do campo. Aceita vírgula decimal | Evitar dados impossíveis |
+| Check-in parcial | Campos em branco **mantêm o valor já salvo hoje**, que aparece como "Saved today: …" dentro do campo. Dá para registrar uma medição de cada vez | Uso ao longo do dia |
+| Revisão antes de salvar | Mostra cada valor com o status que vai receber, marcando o que é novo e o que foi "saved earlier today". Avisa quando um valor novo é crítico. Botões "Correct" e "Confirm and save" | Evitar erros de digitação e alertas falsos |
 | Prévia no painel | Durante a revisão, o painel inteiro (cards, gráfico, alertas, corpo, prontidão e status geral) mostra os valores digitados, com aviso "Preview, not saved yet" e bordas tracejadas. O detalhe abre no indicador mais grave. "Correct" volta ao que está salvo | Conferir o efeito da leitura antes de gravar |
 | Persistência no servidor | Leituras salvas por astronauta no back-end e validadas lá. Aparecem em qualquer aparelho em que a pessoa entrar | Uso contínuo |
 | Painel vazio | Conta nova mostra "No readings yet" e o aviso de check-in | — |

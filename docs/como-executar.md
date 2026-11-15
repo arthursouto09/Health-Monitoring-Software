@@ -82,7 +82,9 @@ Rode antes de abrir um PR: se falhar aqui, falha no deploy. O aviso "Some chunks
 |---|---|---|
 | Login | Senha errada, depois "Fill in" e "Sign in" | Mensagem "Wrong username or password"; depois abre o painel com "Signed in as Demo astronaut" |
 | Sem cadastro | Procure um link de cadastro | Não existe; só `npm run create-user` cria contas |
-| Revisão | Preencha frequência `130` e glicemia `40`, clique em "Review today's readings" | Lista com status de cada valor, aviso de valor crítico e aviso de que substitui as leituras de hoje |
+| Valores irreais | Digite temperatura `27`, frequência `1e2` e sono `7.25`, clique em "Review" | Não abre a revisão; cada campo mostra o erro em vermelho e a faixa aceita |
+| Revisão | Preencha frequência `130` e glicemia `40`, clique em "Review today's readings" | Lista com status de cada valor (novos e "saved earlier today") e aviso de valor crítico |
+| Campos em branco | Na conta demo, preencha só a temperatura (`38,5`) e confirme | Os outros indicadores continuam com os valores salvos antes; os campos mostram "Saved today: …" |
 | Prévia no painel | Ainda na revisão, olhe o resto da tela | Aviso "Preview, not saved yet"; cards, alertas, corpo, gráfico, prontidão e status geral mostram os valores digitados |
 | Corrigir | Clique em "Correct" | Volta ao formulário com os valores preenchidos e o painel volta ao que está salvo |
 | Salvar | Corrija a glicemia, "Review" e "Confirm and save" | Cards atualizam e o formulário limpa |

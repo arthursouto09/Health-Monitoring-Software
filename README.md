@@ -20,7 +20,9 @@ On long missions, astronauts are exposed to radiation, isolation and confinement
 ## Features
 
 - **Sign-in without sign-up:** crew accounts are created by mission control. A demo account (`astronaut` / `mars2026`) is shown on the login screen
-- **Review before saving:** each value is shown with the status it will get, so typos are caught before they become false alarms
+- **Review before saving:** each value is shown with the status it will get, and the whole dashboard previews it, so typos are caught before they become false alarms
+- **Realistic values only:** each indicator accepts a plausible range (for example 34 to 41 °C), checked in the form and on the server
+- **Partial check-ins:** blank fields keep the value already saved today
 - **Daily check-in** for six indicators, with a hint on how to measure each one
 - **Color-coded status** (normal, attention, contact flight surgeon). Each status also has an icon and text, so it never depends on color alone
 - **Interactive body map:** click the brain, heart, whole body or bones to see what the part does, its spaceflight risk and the linked indicators

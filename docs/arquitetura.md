@@ -80,14 +80,15 @@ sequenceDiagram
     participant L as logic/*
     participant P as Painel
 
-    A->>C: preenche
+    A->>C: preenche (campos em branco mantêm o valor salvo hoje)
+    C->>L: valida cada valor (validate.js)
     C->>L: status e linha de base de cada valor
     C-->>P: prévia (painel mostra os valores ainda não salvos)
     C-->>A: revisão (Corrigir ou Confirmar)
     A->>C: confirma
     C->>API: { date, values } + cookie de sessão
     API->>API: confere sessão e limites dos valores
-    API->>DB: grava (substitui a leitura do mesmo dia)
+    API->>DB: grava a leitura do dia (já com os valores mantidos)
     API-->>C: leitura salva
     C->>L: getStatus, personalBaseline, readinessScore
     L-->>P: status, desvio da linha de base, pontuação
@@ -109,14 +110,14 @@ sequenceDiagram
 | `/api/logout` | POST | Não | Apaga o cookie |
 | `/api/me` | GET | — | Devolve o usuário logado, ou 401 com a dica da conta demo |
 | `/api/entries` | GET | Sim | Lista as leituras do astronauta, da mais antiga para a mais nova |
-| `/api/entries` | PUT `{ date, values }` | Sim | Salva a leitura do dia (substitui a do mesmo dia) |
+| `/api/entries` | PUT `{ date, values }` | Sim | Salva a leitura completa do dia. O formulário já envia os valores mantidos junto com os novos |
 
 ### Login e segurança
 
 - **Sem cadastro:** as contas são criadas pela equipe com `npm run create-user` (veja [como-executar.md](como-executar.md#contas-da-tripulação)).
 - **Senhas** guardadas com `scrypt` (nativo do Node), com sal aleatório.
 - **Sessão** em cookie `HttpOnly`, `SameSite=Lax` e `Secure` em HTTPS, assinado com HMAC usando `SESSION_SECRET`. Vale por 7 dias. O JavaScript da página não tem acesso ao token.
-- **Validação no servidor:** só aceita indicadores conhecidos e valores dentro dos limites de entrada de `indicators.js`.
+- **Validação no servidor:** só aceita indicadores conhecidos e valores realistas, com a mesma regra do formulário (`src/logic/validate.js`: faixa plausível, precisão do indicador, número simples).
 - **Isolamento:** cada astronauta só lê e grava as próprias leituras.
 
 ### Banco de dados
@@ -204,6 +205,7 @@ Só o ambiente da missão escolhido (`localStorage`, chave `astro-health-environ
         ├── baseline.js         linha de base pessoal
         ├── engagement.js       sequência de dias e pontuação de prontidão
         ├── report.js           relatório CSV
+        ├── validate.js         valores realistas (formulário e servidor)
         └── dates.js            datas no fuso local
 ```
 

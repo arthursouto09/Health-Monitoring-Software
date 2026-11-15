@@ -26,6 +26,21 @@ Todo o conteúdo desta página vem de `src/data/indicators.js`, `src/data/enviro
 | Sono | 7 a 9 h | 5 a 6,5 ou 9,5 a 11 | abaixo de 5 ou acima de 11 |
 | Humor | 3 a 5 | 2 | 1 |
 
+## Valores aceitos na entrada
+
+Além das faixas de status, cada indicador tem uma **faixa de entrada plausível** para uma automedição feita por um astronauta consciente. Valores fora dela são quase certamente erro de digitação (por exemplo `3.7` ou `370` em vez de `37`) e são **recusados**, no formulário e no servidor, com a mesma regra (`src/logic/validate.js`). As zonas críticas sempre ficam dentro da faixa, para poderem ser registradas. **Decisão do app.**
+
+| Indicador | Aceito | Precisão | Por que esses limites |
+|---|---|---|---|
+| Frequência cardíaca | 30 a 180 bpm | inteiro | Abaixo de 30 ou acima de 180 em repouso não é uma automedição realista |
+| Pressão sistólica | 70 a 230 mmHg | inteiro | Abaixo de 70 a pessoa estaria em choque; acima de 230 é improvável e costuma ser erro do aparelho |
+| Temperatura | 34 a 41 °C | 0,1 °C | Fora disso a pessoa não estaria em condição de se medir |
+| Glicemia em jejum | 40 a 400 mg/dL | inteiro | Cobre hipoglicemia grave e hiperglicemia sem aceitar valores absurdos |
+| Sono | 0 a 12 h | 0,5 h | Um período de sono acima de 12 h é improvável na rotina da missão |
+| Humor | 1 a 5 | inteiro | É a própria escala |
+
+Também são recusados textos que não sejam um número simples (por exemplo `1e2`). A vírgula decimal é aceita (`36,6`).
+
 ## O que tem fonte e o que é decisão do app
 
 Esta separação deve aparecer na apresentação. Dizer quais limites foram escolhas do app, e que precisam de validação médica, é mais forte do que fingir que todos vêm de uma fonte.

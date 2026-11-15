@@ -29,13 +29,14 @@ Estado em 15 de novembro de 2026.
 | Entrada por imagem (câmera, ultrassom) | Pendente. Precisa de processamento de imagem para ter valor real |
 | Lembretes com o app fechado | Pendente. Exigiria service worker e push |
 | Back-end com login e banco | **Feito.** Funções na Vercel, Postgres, login sem cadastro, conta demo |
-| Revisão antes de salvar o check-in | **Feito** (Corrigir ou Confirmar) |
+| Revisão antes de salvar o check-in | **Feito** (Corrigir ou Confirmar), com prévia no painel |
+| Check-in parcial sem apagar o resto do dia | **Feito.** Campos em branco mantêm o valor salvo |
+| Recusar valores irreais | **Feito.** Faixa plausível por indicador, no formulário e no servidor |
 
 ## Ideias em discussão
 
 | Ideia | Observação |
 |---|---|
-| Check-in parcial sem apagar o resto do dia | Hoje, salvar de novo no mesmo dia substitui a leitura inteira. A revisão já avisa o que será apagado |
 | Perfil de cirurgião de voo | Uma conta que vê as leituras da tripulação, fechando o ciclo do compartilhamento seguro |
 
 ## Limitações do back-end

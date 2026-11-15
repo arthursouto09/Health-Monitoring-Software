@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceArea, ResponsiveContainer } from "recharts";
-import { INDICATORS } from "./Data/indicators.js";
+import { INDICATORS } from "./data/indicators.js";
 import { getStatus, STATUS_META, makeDemoEntries } from "./logic/status.js";
 import BodyMap from "./components/BodyMap.jsx";
 
-
 const KEY = "astro-health-entries";
+const RANK = { unknown: 0, normal: 1, attention: 2, critical: 3 };
 
 function load() {
   try {
@@ -76,41 +76,76 @@ export default function App() {
   const status = getStatus(value, ind);
   const chartData = entries.map((e) => ({ date: e.date.slice(5), value: e.values[ind.id] }));
 
+  // Overall status = the worst status among all indicators.
+  const statuses = INDICATORS.map((i) => ({ ind: i, status: getStatus(latest.values[i.id], i) }));
+  const alerts = statuses.filter((s) => RANK[s.status] >= RANK.attention).sort((a, b) => RANK[b.status] - RANK[a.status]);
+  const overall = statuses.reduce((w, s) => (RANK[s.status] > RANK[w] ? s.status : w), "unknown");
+
   return (
-    <main>
-      <header>
-        <h1>Astronaut Health Monitor</h1>
-        <p>Last reading: {latest.date}. Select an indicator to see its trend and what to do.</p>
+    <main className="cockpit">
+      <header className="topbar">
+        <div>
+          <h1>Astronaut Health Monitor</h1>
+          <p>Last reading: {latest.date}</p>
+        </div>
+        <div className="overall">
+          <StatusBadge status={overall} />
+          <span>{alerts.length ? `${alerts.length} indicator(s) need attention` : "All indicators normal"}</span>
+        </div>
       </header>
 
-      <section className="cards" aria-label="Current indicators">
-        {INDICATORS.map((i) => (
-          <Card key={i.id} ind={i} value={latest.values[i.id]} selected={i.id === selectedId} onSelect={() => setSelectedId(i.id)} />
-        ))}
-      </section>
+      <div className="layout">
+        <aside className="col-left">
+          <BodyMap values={latest.values} onSelect={setSelectedId} />
+        </aside>
 
-      <BodyMap values={latest.values} onSelect={setSelectedId} />
-
-      <div className="grid">
-        <section className="panel detail">
-          <h2>{ind.label} <StatusBadge status={status} /></h2>
-          <p className="advice">{ind.advice[status] ?? "Enter a reading to see guidance."}</p>
-          <div className="chart">
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={chartData}>
-                <ReferenceArea y1={ind.normalLow} y2={ind.normalHigh} fill="var(--normal)" fillOpacity={0.15} />
-                <XAxis dataKey="date" stroke="var(--muted)" />
-                <YAxis stroke="var(--muted)" domain={["auto", "auto"]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="var(--accent)" strokeWidth={2} dot />
-              </LineChart>
-            </ResponsiveContainer>
+        <section className="col-center">
+          <div className="cards" aria-label="Current indicators">
+            {INDICATORS.map((i) => (
+              <Card key={i.id} ind={i} value={latest.values[i.id]} selected={i.id === selectedId} onSelect={() => setSelectedId(i.id)} />
+            ))}
           </div>
-          <p><strong>Why it matters:</strong> {ind.why}</p>
-          <p><strong>Spaceflight hazard:</strong> {ind.hazard}</p>
-          <p><strong>Source:</strong> {ind.source}</p>
+
+          <section className="panel detail">
+            <h2>{ind.label} <StatusBadge status={status} /></h2>
+            <p className="advice">{ind.advice[status] ?? "Enter a reading to see guidance."}</p>
+            <div className="chart">
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={chartData}>
+                  <ReferenceArea y1={ind.normalLow} y2={ind.normalHigh} fill="var(--normal)" fillOpacity={0.15} />
+                  <XAxis dataKey="date" stroke="var(--muted)" />
+                  <YAxis stroke="var(--muted)" domain={["auto", "auto"]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="value" stroke="var(--accent)" strokeWidth={2} dot />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <p><strong>Why it matters:</strong> {ind.why}</p>
+            <p><strong>Spaceflight hazard:</strong> {ind.hazard}</p>
+            <p><strong>Source:</strong> {ind.source}</p>
+          </section>
         </section>
-        <CheckIn onSave={save} />
+
+        <aside className="col-right">
+          <section className="panel alerts">
+            <h2>Alerts</h2>
+            {alerts.length === 0 ? (
+              <p className="empty">No alerts. Keep up your routine.</p>
+            ) : (
+              <ul>
+                {alerts.map(({ ind: a, status: s }) => (
+                  <li key={a.id}>
+                    <button className={`alert-item ${s}`} onClick={() => setSelectedId(a.id)}>
+                      <span>{a.label}: <strong>{latest.values[a.id]} {a.unit}</strong></span>
+                      <StatusBadge status={s} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <CheckIn onSave={save} />
+        </aside>
       </div>
 
       <footer>

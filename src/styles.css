@@ -37,3 +37,32 @@ footer { margin-top: 24px; color: var(--muted); font-size: .85rem; }
 .linked { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
 .linked button { background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 4px 10px; font: inherit; cursor: pointer; }
 @media (max-width: 800px) { .bodymap { grid-template-columns: 1fr; justify-items: center; } }
+/* ---- Cockpit layout: top status bar + three columns ---- */
+.cockpit { max-width: 1400px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; }
+.topbar h1 { font-size: 1.4rem; margin: 0; }
+.topbar p { margin: 0; color: var(--muted); }
+.overall { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.layout { display: grid; grid-template-columns: 280px minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.col-left, .col-center, .col-right { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.cockpit .cards { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); margin-bottom: 0; }
+.cockpit .bodymap { grid-template-columns: 1fr; justify-items: center; margin-bottom: 0; }
+.alerts ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.alert-item { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--bg); color: inherit; border: 1px solid var(--line); border-left-width: 6px; border-radius: 8px; padding: 8px 10px; font: inherit; text-align: left; cursor: pointer; }
+.alert-item.attention { border-left-color: var(--attention); } .alert-item.critical { border-left-color: var(--critical); }
+.alerts .empty { color: var(--muted); margin: 0; }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  .col-center { order: 1; } .col-right { order: 2; } .col-left { order: 3; }
+}
+/* ---- Phone adjustments ---- */
+@media (max-width: 600px) {
+  main { padding: 12px 10px 32px; }
+  .topbar { padding: 12px; }
+  .topbar h1 { font-size: 1.15rem; }
+  .cockpit .cards { grid-template-columns: repeat(2, 1fr); }
+  .card .value { font-size: 1.5rem; }
+  .panel { padding: 14px; }
+  input { font-size: 16px; } /* prevents automatic zoom on iPhone */
+  button, .alert-item, .linked button { min-height: 44px; } /* comfortable touch target */
+}

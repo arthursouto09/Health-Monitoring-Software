@@ -16,7 +16,6 @@ header p { color: var(--muted); margin: 0 0 20px; }
 .card .value { font-size: 1.8rem; font-weight: 700; } .card .value small { font-size: .9rem; color: var(--muted); font-weight: 400; }
 .badge { display: inline-block; width: fit-content; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid currentColor; }
 .badge.normal { color: var(--normal); } .badge.attention { color: var(--attention); } .badge.critical { color: var(--critical); } .badge.unknown { color: var(--muted); }
-.grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
 .advice { font-size: 1.05rem; margin-top: 0; }
 .chart { margin: 12px 0; }
@@ -127,3 +126,20 @@ select { background: var(--bg); color: var(--text); border: 1px solid var(--line
 .checkin .hint { color: var(--muted); font-size: .9rem; margin-top: 0; }
 .review-item.kept { opacity: .75; }
 input::placeholder { color: var(--muted); opacity: .8; }
+/* ---- NASA hazard tag (discreet, under each indicator's detail) ---- */
+.hazard-tag { flex-basis: 100%; margin: 4px 0 0; font-size: .8rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.hazard-tag__category { border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--accent); }
+.hazard-tag__hazard { color: var(--muted); text-decoration: underline; }
+.hazard-tag__hazard:not(:last-of-type)::after { content: "·"; margin-left: 8px; color: var(--muted); }
+/* ---- Demo scenario loader (1-click, for judging/the demo video) ---- */
+.demo-scenarios { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; color: var(--muted); font-size: .85rem; }
+.demo-scenarios button { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; font: inherit; font-size: .8rem; cursor: pointer; }
+.demo-scenarios button.active { border-color: var(--accent); color: var(--accent); }
+.demo-scenarios button:disabled { opacity: .6; cursor: wait; }
+/* ---- Combined risk alerts (cross-indicator patterns) ---- */
+.combined-alerts { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.combined-alert { display: flex; flex-direction: column; gap: 4px; border: 2px solid var(--critical); border-radius: 8px; padding: 10px 12px; background: var(--bg); }
+.combined-alert-badge { display: inline-flex; align-items: center; gap: 4px; width: fit-content; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--critical); border: 1px solid var(--critical); border-radius: 999px; padding: 2px 10px; }
+.combined-alert-action { color: var(--muted); font-size: .9rem; }
+.combined-alert-targets { display: flex; gap: 8px; flex-wrap: wrap; }
+.combined-alert-targets button { background: transparent; color: var(--critical); border: 1px solid var(--critical); border-radius: 6px; padding: 3px 10px; font: inherit; font-size: .8rem; cursor: pointer; }

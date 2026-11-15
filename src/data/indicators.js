@@ -95,4 +95,18 @@ export const INDICATORS = [
     },
     source: "Simple 1-5 self-rating created for this app. It is NOT a validated clinical scale; a real system should use a validated questionnaire chosen with a psychologist.",
   },
+  {
+    id: "exercise", label: "Resistance Exercise", unit: "min", icon: "🏋",
+    step: 5, input: { min: 0, max: 180 },
+    normalLow: 45, normalHigh: 150, criticalLow: 15, criticalHigh: 180,
+    hazard: "Altered gravity",
+    why: "Microgravity causes bone density loss and muscle atrophy without daily mechanical loading.",
+    howTo: "Enter today's total minutes of resistance or aerobic countermeasure exercise.",
+    advice: {
+      normal: "Meeting the daily countermeasure target. Keep following the exercise protocol to protect bone density and muscle mass.",
+      attention: "Outside the daily target range (45-150 min). If under, fit in a short session today; if over, confirm you are not skipping recovery. Mention it at the next crew health check.",
+      critical: "Far outside the safe daily range. Minutes this low for multiple days raise bone and muscle loss risk. Schedule a resistance session and flag it to the exercise physiologist or flight surgeon.",
+    },
+    source: "NASA HRP exercise countermeasure risk area (nasa.gov/hrp/risks/). Daily minute cutoffs (45, 150, 15, 180): design choice of this app for daily tracking.",
+  },
 ];

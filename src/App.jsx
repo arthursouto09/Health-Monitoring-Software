@@ -2,16 +2,18 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceArea, ReferenceLine, ResponsiveContainer } from "recharts";
 import { INDICATORS } from "./data/indicators.js";
 import { ENVIRONMENTS } from "./data/environments.js";
-import { getStatus } from "./logic/status.js";
+import { getStatus, DEMO_SCENARIOS, SCENARIO_IDS } from "./logic/status.js";
 import { api } from "./api.js";
 import BodyMap from "./components/BodyMap.jsx";
 import Reminder from "./components/Reminder.jsx";
 import CheckIn from "./components/CheckIn.jsx";
 import StatusBadge from "./components/StatusBadge.jsx";
+import HazardTag from "./components/HazardTag.jsx";
 import { buildReportCsv, downloadText } from "./logic/report.js";
 import { checkInStreak, readinessScore, readinessLevel } from "./logic/engagement.js";
 import { toLocalISO } from "./logic/dates.js";
 import { personalBaseline, compareToBaseline, fmt, BASELINE } from "./logic/baseline.js";
+import { getCombinedAlerts } from "./logic/combinedAlerts.js";
 
 const ENV_KEY = "astro-health-environment";
 const RANK = { unknown: 0, normal: 1, attention: 2, critical: 3 };
@@ -46,6 +48,8 @@ export default function App({ user, initialEntries, onLogout }) {
   const [draft, setDraft] = useState(null);
   const [selectedId, setSelectedId] = useState(INDICATORS[0].id);
   const [envId, setEnvId] = useState(loadEnvironment);
+  const [scenarioLoading, setScenarioLoading] = useState(null);
+  const [activeScenario, setActiveScenario] = useState(null);
   const env = ENVIRONMENTS.find((e) => e.id === envId);
 
   useEffect(() => {
@@ -57,6 +61,18 @@ export default function App({ user, initialEntries, onLogout }) {
   const save = async (entry) => {
     const saved = await api.saveEntry(entry);
     setEntries((prev) => [...prev.filter((e) => e.date !== saved.date), saved].sort((a, b) => a.date.localeCompare(b.date)));
+  };
+
+  // Loads 14 days of deterministic demo data, one PUT per day (no bulk endpoint needed).
+  // Lets judges and the demo video reproduce a specific crisis pattern with one click.
+  const loadScenario = async (id) => {
+    setScenarioLoading(id);
+    try {
+      for (const day of DEMO_SCENARIOS[id].build()) await save(day);
+      setActiveScenario(id);
+    } finally {
+      setScenarioLoading(null);
+    }
   };
 
   const shown = draft
@@ -92,6 +108,7 @@ export default function App({ user, initialEntries, onLogout }) {
   const statuses = INDICATORS.map((i) => ({ ind: i, status: getStatus(latest.values[i.id], i) }));
   const alerts = statuses.filter((s) => RANK[s.status] >= RANK.attention).sort((a, b) => RANK[b.status] - RANK[a.status]);
   const overall = statuses.reduce((w, s) => (RANK[s.status] > RANK[w] ? s.status : w), "unknown");
+  const combinedAlerts = getCombinedAlerts(shown, INDICATORS);
 
   const exportReport = () =>
     downloadText(`health-report-${today}.csv`, buildReportCsv(entries, INDICATORS, env.label));
@@ -111,6 +128,21 @@ export default function App({ user, initialEntries, onLogout }) {
               {ENVIRONMENTS.map((e) => <option key={e.id} value={e.id}>{e.label}</option>)}
             </select>
           </label>
+          <div className="demo-scenarios" role="group" aria-label="Load a demo scenario">
+            <span>Demo scenario</span>
+            {SCENARIO_IDS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={activeScenario === id ? "active" : ""}
+                title={DEMO_SCENARIOS[id].description}
+                disabled={Boolean(scenarioLoading)}
+                onClick={() => loadScenario(id)}
+              >
+                {scenarioLoading === id ? "Loading…" : DEMO_SCENARIOS[id].label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="stats" aria-label="Mission stats">
           <div className={`stat ${readinessLevel(readiness)}`} title="Average of indicator statuses: normal 100, attention 50, critical 0. Not a clinical score.">
@@ -191,12 +223,30 @@ export default function App({ user, initialEntries, onLogout }) {
             <p><strong>Spaceflight hazard:</strong> {ind.hazard}</p>
             <p><strong>{env.label}:</strong> {env.context}</p>
             <p><strong>Source:</strong> {ind.source}</p>
+            <HazardTag indicatorId={ind.id} />
           </section>
         </section>
 
         <aside className="col-right">
           <section className="panel alerts">
             <h2>Alerts</h2>
+            {combinedAlerts.length > 0 && (
+              <ul className="combined-alerts" aria-label="Combined risk alerts">
+                {combinedAlerts.map((a) => (
+                  <li key={a.id} className="combined-alert">
+                    <span className="combined-alert-badge"><span aria-hidden="true">⚠</span> Combined Risk</span>
+                    <span>{a.message}</span>
+                    <span className="combined-alert-action">{a.action}</span>
+                    <div className="combined-alert-targets">
+                      {a.indicatorIds.map((id) => {
+                        const i = INDICATORS.find((x) => x.id === id);
+                        return i ? <button key={id} type="button" onClick={() => setSelectedId(id)}>View {i.label}</button> : null;
+                      })}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
             {alerts.length === 0 ? (
               <p className="empty">No alerts. Keep up your routine.</p>
             ) : (

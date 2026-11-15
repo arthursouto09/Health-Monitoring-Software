@@ -1,12 +1,10 @@
-# 🧑‍🚀 Astronaut Health Monitor
+# Astronaut Health Monitor
 
 > A health dashboard for long-duration missions: measure, understand and act.
 
 ![Challenge](https://img.shields.io/badge/NASA%20Space%20Apps-2026-red)
 ![Status](https://img.shields.io/badge/status-hackathon%20prototype-blue)
 
-**Live demo:** [ADD LINK]
-**Demo video:** [ADD LINK]
 **Challenge:** *Create Health Monitoring Software for Astronauts on Space Missions* (NASA International Space Apps Challenge 2026)
 
 ---
@@ -270,7 +268,7 @@ Crew accounts are managed from the command line only; there is no account manage
 |---|---|---|
 | Arthur | Developer | https://github.com/arthursouto09 |
 | Enrico | Developer | https://github.com/sidts |
-| Erick | Developer | https://github.com/DevNinee |
+| Erick | Developer & QA | https://github.com/DevNinee |
 | Letícia | Pitch and submission | https://github.com/Leticiaferrer02 |
 | Milena | | |
 

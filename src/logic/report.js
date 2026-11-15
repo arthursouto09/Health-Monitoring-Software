@@ -5,7 +5,7 @@ import { getStatus, STATUS_META } from "./status.js";
 // leaves the device until the astronaut shares the file.
 export function buildReportCsv(entries, indicators, environmentLabel) {
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const header = ["date", "environment", "indicator", "value", "unit", "status", "normal_range"];
+  const header = ["date", "environment_at_export", "indicator", "value", "unit", "status", "normal_range"];
   const rows = entries.flatMap((e) =>
     indicators
       .filter((ind) => e.values[ind.id] !== undefined)

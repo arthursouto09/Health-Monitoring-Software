@@ -209,7 +209,9 @@ Crew accounts are managed from the command line only; there is no account manage
 |---|---|---|
 | Arthur | Developer | https://github.com/arthursouto09 |
 | Enrico | Developer | https://github.com/sidts |
-| Erick  | Developer | 
+| Erick  | Developer | https://github.com/DevNinee |
+| Letícia | Pitch and submission | https://github.com/Leticiaferrer02 |
+| Milena | |
 
 ## Disclaimer
 

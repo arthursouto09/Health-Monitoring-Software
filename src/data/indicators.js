@@ -4,11 +4,16 @@
 //
 // normalLow/High   -> inside = "normal"
 // criticalLow/High -> outside = "critical"; between = "attention"
+// input.min/max    -> plausible range for a self-measurement by a conscious astronaut.
+//                     Anything outside it is almost certainly a typo and is rejected
+//                     (in the form and on the server). Design choice of this app; the
+//                     critical zones always stay inside it so they can be recorded.
+// step             -> precision accepted for the value (e.g. 0.1 °C).
 
 export const INDICATORS = [
   {
     id: "heartRate", label: "Heart rate", unit: "bpm", icon: "♥",
-    step: 1, input: { min: 30, max: 200 },
+    step: 1, input: { min: 30, max: 180 },
     normalLow: 60, normalHigh: 100, criticalLow: 40, criticalHigh: 120,
     hazard: "Altered gravity, radiation",
     why: "Shows how the cardiovascular system is adapting to microgravity and stress. Well-trained people can rest below 60 bpm, so compare with your own baseline.",
@@ -22,7 +27,7 @@ export const INDICATORS = [
   },
   {
     id: "systolic", label: "Systolic blood pressure", unit: "mmHg", icon: "◍",
-    step: 1, input: { min: 60, max: 220 },
+    step: 1, input: { min: 70, max: 230 },
     normalLow: 90, normalHigh: 119, criticalLow: 80, criticalHigh: 180,
     hazard: "Altered gravity (fluid shifts)",
     why: "Fluids shift toward the head in microgravity, which can change blood pressure. Only the top number is tracked in this version.",
@@ -36,7 +41,7 @@ export const INDICATORS = [
   },
   {
     id: "temperature", label: "Body temperature", unit: "°C", icon: "☀",
-    step: 0.1, input: { min: 34, max: 42 },
+    step: 0.1, input: { min: 34, max: 41 },
     normalLow: 36.1, normalHigh: 37.2, criticalLow: 35.0, criticalHigh: 38.0,
     hazard: "Closed environment, radiation",
     why: "A rise can signal infection or immune changes, which matter in a closed spacecraft.",
@@ -50,7 +55,7 @@ export const INDICATORS = [
   },
   {
     id: "glucose", label: "Blood glucose", unit: "mg/dL", icon: "◆",
-    step: 1, input: { min: 20, max: 500 },
+    step: 1, input: { min: 40, max: 400 },
     normalLow: 70, normalHigh: 99, criticalLow: 54, criticalHigh: 180,
     hazard: "Altered gravity, radiation, reduced physical activity",
     why: "Spaceflight can reduce insulin sensitivity, and diet and exercise change on board. Fasting glucose is a simple check of how the body handles energy.",
@@ -64,7 +69,7 @@ export const INDICATORS = [
   },
   {
     id: "sleep", label: "Sleep", unit: "h", icon: "☾",
-    step: 0.5, input: { min: 0, max: 14 },
+    step: 0.5, input: { min: 0, max: 12 },
     normalLow: 7, normalHigh: 9, criticalLow: 5, criticalHigh: 11,
     hazard: "Isolation, confinement",
     why: "Astronauts average about 6 hours of sleep in space, less than the 7 to 9 hours adults need. Short sleep reduces alertness and performance.",

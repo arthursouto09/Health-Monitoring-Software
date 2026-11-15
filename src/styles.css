@@ -65,4 +65,8 @@ footer { margin-top: 24px; color: var(--muted); font-size: .85rem; }
   .panel { padding: 14px; }
   input { font-size: 16px; } /* prevents automatic zoom on iPhone */
   button, .alert-item, .linked button { min-height: 44px; } /* comfortable touch target */
-}
+}/* ---- Personal baseline ---- */
+.baseline-flag { color: var(--accent); font-size: .8rem; font-weight: 600; }
+.baseline strong.baseline-flag { font-size: inherit; }
+.alerts h3 { font-size: .95rem; margin: 16px 0 8px; color: var(--muted); }
+.alert-item.baseline { border-left-color: var(--accent); }

@@ -4,11 +4,17 @@ const COOKIE = "ahm_session";
 const MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days
 const DEV_SECRET = "dev-only-secret-change-me";
 
+let warned = false;
+
 function secret() {
   const s = process.env.SESSION_SECRET;
   if (s) return s;
-  if (process.env.VERCEL || process.env.NODE_ENV === "production") {
-    throw new Error("SESSION_SECRET is not set. Add it to the environment variables.");
+  // Deployed: refuse to sign sessions with a public secret.
+  if (process.env.VERCEL) throw new Error("SESSION_SECRET is not set. Add it to the environment variables.");
+  // Local (npm run dev / preview): fall back to a dev secret, with a warning.
+  if (!warned) {
+    console.warn("[session] SESSION_SECRET is not set; using an insecure development secret.");
+    warned = true;
   }
   return DEV_SECRET;
 }

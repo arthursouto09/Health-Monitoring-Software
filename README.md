@@ -272,6 +272,10 @@ Crew accounts are managed from the command line only; there is no account manage
 | Letícia | Pitch and submission | https://github.com/Leticiaferrer02 |
 | Milena | | |
 
+## AI / SI tools used
+
+Part of this project's code and documentation (including this README) was written with AI coding assistance (Claude / Claude Code, by Anthropic), used to accelerate implementation and documentation. No NASA branding, logos or mission identifiers were generated or modified by AI. Every medical range, NASA hazard mapping and cited source was written against the real sources listed above and reviewed by the team; AI-assisted code was reviewed and tested by the team before merging, and does not replace medical validation.
+
 ## Disclaimer
 
 Independent educational project created for the NASA Space Apps Challenge. It is **not** an official NASA product and **not a medical device**. It does not diagnose or treat any condition. Reference values and recommendations are for demonstration and must be validated by medical professionals before any real use.

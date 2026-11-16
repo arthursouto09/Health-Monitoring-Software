@@ -259,8 +259,8 @@ Crew accounts are managed from the command line only; there is no account manage
 - American Heart Association blood pressure categories, via Harvard Health: https://www.health.harvard.edu/heart-health/reading-the-current-blood-pressure-guidelines
 - Resting heart rate, Mayo Clinic: https://www.mayoclinic.org/heart-rate/expert-answers/faq-20057979
 - Fasting blood glucose, CDC: https://www.cdc.gov/diabetes/diabetes-testing/
-- Hypoglycemia levels, American Diabetes Association, Standards of Care in Diabetes [ADD LINK]
-- Body temperature and hypothermia: [ADD PRIMARY SOURCE, e.g. MedlinePlus or Mayo Clinic]
+- Hypoglycemia levels, American Diabetes Association, Standards of Care in Diabetes 2026, Section 6: https://doi.org/10.2337/dc26-S006
+- Body temperature and hypothermia, MedlinePlus: https://medlineplus.gov/ency/article/000038.htm and https://medlineplus.gov/ency/article/001982.htm
 
 ## Team
 

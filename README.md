@@ -270,7 +270,6 @@ Crew accounts are managed from the command line only; there is no account manage
 | Enrico | Developer | https://github.com/sidts |
 | Erick | Developer & QA | https://github.com/DevNinee |
 | Letícia | Pitch and submission | https://github.com/Leticiaferrer02 |
-| Milena | | |
 
 ## AI / SI tools used
 
